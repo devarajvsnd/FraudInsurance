@@ -61,13 +61,26 @@ class DataIngestion:
     
 
 
+    def initiate_data_ingestion(self)-> DataIngestionArtifact:
+        try:
+            tgz_file_path =  self.download_insurance_data()
+            return self.extract_tgz_file(tgz_file_path=tgz_file_path)
+        
+            # return self.split_data_as_train_test()             
+        
+        except Exception as e:
+            raise FraudDetectionException(e,sys) from e
+    
+
+
+    def __del__(self):
+        logging.info(f"{'>>'*20}Data Ingestion log completed.{'<<'*20} \n\n")
 
 
 
 
 
-
-
+'''
 
 
     def split_data_as_train_test(self) -> DataIngestionArtifact:
@@ -125,7 +138,7 @@ class DataIngestion:
             return data_ingestion_artifact
 
         except Exception as e:
-            raise HousingException(e,sys) from e
+            raise HousingException(e,sys) from e '''
 
 
 
@@ -136,20 +149,3 @@ class DataIngestion:
 
 
 
-
-
-
-
-
-    def initiate_data_ingestion(self)-> DataIngestionArtifact:
-        try:
-            tgz_file_path =  self.download_insurance_data()
-            self.extract_tgz_file(tgz_file_path=tgz_file_path)
-            return self.split_data_as_train_test()
-        except Exception as e:
-            raise HousingException(e,sys) from e
-    
-
-
-    def __del__(self):
-        logging.info(f"{'>>'*20}Data Ingestion log completed.{'<<'*20} \n\n")
