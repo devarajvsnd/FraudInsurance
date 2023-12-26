@@ -1,7 +1,7 @@
 
 from src.entity.config_entity import DataIngestionConfig, DataTransformationConfig,DataValidationConfig,   \
 ModelTrainerConfig,ModelEvaluationConfig,ModelPusherConfig,TrainingPipelineConfig
-from src.util.util import read_yaml_file
+from src.util.util import read_yaml_file, read_json_file
 from src.logger import logging
 import sys,os
 from src.constant import *
@@ -16,6 +16,12 @@ class Configuartion:
         ) -> None:
         try:
             self.config_info  = read_yaml_file(file_path=config_file_path)
+
+
+
+            # self.validation_info= read_json_file(os.path.join(ROOT_DIR,CONFIG_DIR,DATA_VALIDATION_SCHEMA_FILE_NAME_KEY))
+
+
             self.training_pipeline_config = self.get_training_pipeline_config()
             self.time_stamp = current_time_stamp
         except Exception as e:
@@ -68,25 +74,6 @@ class Configuartion:
             raise FraudDetectionException(e,sys) from e
 
 
-
-    def get_training_pipeline_config(self) ->TrainingPipelineConfig:
-        try:
-            training_pipeline_config = self.config_info[TRAINING_PIPELINE_CONFIG_KEY]
-            artifact_dir = os.path.join(ROOT_DIR,
-            training_pipeline_config[TRAINING_PIPELINE_NAME_KEY],
-            training_pipeline_config[TRAINING_PIPELINE_ARTIFACT_DIR_KEY]
-            )
-
-            training_pipeline_config = TrainingPipelineConfig(artifact_dir=artifact_dir)
-            logging.info(f"Training pipleine config: {training_pipeline_config}")
-            return training_pipeline_config
-        except Exception as e:
-            raise FraudDetectionException(e,sys) from e
-
-
-
-'''
-
     def get_data_validation_config(self) -> DataValidationConfig:
         try:
             artifact_dir = self.training_pipeline_config.artifact_dir
@@ -96,7 +83,12 @@ class Configuartion:
                 DATA_VALIDATION_ARTIFACT_DIR_NAME,
                 self.time_stamp
             )
+
+
+
             data_validation_config = self.config_info[DATA_VALIDATION_CONFIG_KEY]
+
+
 
 
             schema_file_path = os.path.join(ROOT_DIR,
@@ -121,6 +113,26 @@ class Configuartion:
             return data_validation_config
         except Exception as e:
             raise FraudDetectionException(e,sys) from e
+
+
+
+    def get_training_pipeline_config(self) ->TrainingPipelineConfig:
+        try:
+            training_pipeline_config = self.config_info[TRAINING_PIPELINE_CONFIG_KEY]
+            artifact_dir = os.path.join(ROOT_DIR,
+            training_pipeline_config[TRAINING_PIPELINE_NAME_KEY],
+            training_pipeline_config[TRAINING_PIPELINE_ARTIFACT_DIR_KEY]
+            )
+
+            training_pipeline_config = TrainingPipelineConfig(artifact_dir=artifact_dir)
+            logging.info(f"Training pipleine config: {training_pipeline_config}")
+            return training_pipeline_config
+        except Exception as e:
+            raise FraudDetectionException(e,sys) from e
+
+
+
+'''
 
 
 

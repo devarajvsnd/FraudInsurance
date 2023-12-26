@@ -5,7 +5,7 @@ import numpy as np
 import dill
 import pandas as pd
 from src.constant import *
-
+import json
 
 def write_yaml_file(file_path:str,data:dict=None):
     """
@@ -32,6 +32,25 @@ def read_yaml_file(file_path:str)->dict:
             return yaml.safe_load(yaml_file)
     except Exception as e:
         raise FraudDetectionException(e,sys) from e
+
+
+def read_json_file(file_path:str)->dict:
+    """
+    Reads a json file and returns the contents as a dictionary.
+    file_path: str
+    """
+    try:
+        with open(file_path, 'r') as json_file:
+            return json.load(json_file)
+    except Exception as e:
+        raise FraudDetectionException(e,sys) from e
+
+
+
+
+
+
+
 
 
 def save_numpy_array_data(file_path: str, array: np.array):
