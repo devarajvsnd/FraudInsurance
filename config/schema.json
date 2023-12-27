@@ -1,7 +1,7 @@
 {	"SampleFileName": "fraudDetection_021119920_010222.csv",
 	"LengthOfDateStampInFile": 9,
 	"LengthOfTimeStampInFile": 6,
-	"NumberofColumns" : 39,
+	"NumberofColumns" : 40,
 	"ColName": {
 		"months_as_customer" : "Integer",
 		"age": "Integer",
@@ -41,6 +41,7 @@
 		"auto_make": "varchar",
 		"auto_model": "varchar",
 		"auto_year": "Integer",
-		"fraud_reported": "varchar"
+		"fraud_reported": "varchar",
+		"_c39": "varchar"
 	}
 }

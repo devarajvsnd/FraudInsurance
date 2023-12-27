@@ -64,9 +64,16 @@ class DataIngestion:
     def initiate_data_ingestion(self)-> DataIngestionArtifact:
         try:
             tgz_file_path =  self.download_insurance_data()
-            return self.extract_tgz_file(tgz_file_path=tgz_file_path)
-        
-            # return self.split_data_as_train_test()             
+            self.extract_tgz_file(tgz_file_path=tgz_file_path)
+
+            raw_data_dir= self.data_ingestion_config.raw_data_dir
+
+            data_ingestion_artifact = DataIngestionArtifact(data_file_path=raw_data_dir, is_ingested=True,
+                                                         message=f"Data ingestion completed successfully.")
+            
+            logging.info(f"Data Ingestion artifact:[{data_ingestion_artifact}]")
+
+            return data_ingestion_artifact         
         
         except Exception as e:
             raise FraudDetectionException(e,sys) from e
