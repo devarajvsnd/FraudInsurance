@@ -11,13 +11,7 @@ CONFIG_DIR = "config"
 CONFIG_FILE_NAME = "config.yaml"
 CONFIG_FILE_PATH = os.path.join(ROOT_DIR,CONFIG_DIR,CONFIG_FILE_NAME)
 
-
-
-
-
 CURRENT_TIME_STAMP = get_current_time_stamp()
-
-
 
 
 # Training pipeline related variable
@@ -27,7 +21,6 @@ TRAINING_PIPELINE_NAME_KEY = "pipeline_name"
 
 
 # Data Ingestion related variable
-
 DATA_INGESTION_CONFIG_KEY = "data_ingestion_config"
 DATA_INGESTION_ARTIFACT_DIR = "data_ingestion"
 DATA_INGESTION_DOWNLOAD_URL_KEY = "dataset_download_url"
@@ -44,15 +37,17 @@ DATA_VALIDATION_REPORT_FILE_NAME_KEY = "report_file_name"
 DATA_VALIDATION_REPORT_PAGE_FILE_NAME_KEY = "report_page_file_name"
 
 
-
-
+# Data Preprocessing related variables
+DATA_PREPROCESSING_CONFIG_KEY = "data_preprocessing_config"
+DATA_PREPROCESSING_ARTIFACT_DIR = "data_preprocessing"
+DATA_PREPROCESSING_DIR_NAME_KEY = "preprocessed_dir"
+DATA_PREPROCESSED_FILE_NAME_KEY = "preprocessed_object_file_name"
 
 
 
 # Data Transformation related variables
 DATA_TRANSFORMATION_ARTIFACT_DIR = "data_transformation"
 DATA_TRANSFORMATION_CONFIG_KEY = "data_transformation_config"
-DATA_TRANSFORMATION_ADD_BEDROOM_PER_ROOM_KEY = "add_bedroom_per_room"
 DATA_TRANSFORMATION_DIR_NAME_KEY = "transformed_dir"
 DATA_TRANSFORMATION_TRAIN_DIR_NAME_KEY = "transformed_train_dir"
 DATA_TRANSFORMATION_TEST_DIR_NAME_KEY = "transformed_test_dir"
@@ -70,12 +65,10 @@ DATASET_SCHEMA_COLUMNS_KEY=  "columns"
 NUMERICAL_COLUMN_KEY="numerical_columns"
 CATEGORICAL_COLUMN_KEY = "categorical_columns"
 
-
 TARGET_COLUMN_KEY="target_column"
 
 
 # Model Training related variables
-
 MODEL_TRAINER_ARTIFACT_DIR = "model_trainer"
 MODEL_TRAINER_CONFIG_KEY = "model_trainer_config"
 MODEL_TRAINER_TRAINED_MODEL_DIR_KEY = "trained_model_dir"

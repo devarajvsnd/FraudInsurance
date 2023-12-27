@@ -10,22 +10,32 @@ data_ingestion_config:
   ingested_train_dir: train
   ingested_test_dir: test 
 
-
-
-
 data_validation_config:
   schema_dir: config
   schema_file_name: schema.json
   report_file_name: report.json
   report_page_file_name: report.html
 
+data_preprocessing_config:
+
+  data_preprocessing: data_preprocessing
+  preprocessed_dir: reprocessed_data
+  preprocessed_object_file_name: preprocessed.pkl
+
+
+
+
 data_transformation_config:
-  
   transformed_dir: transformed_data
   transformed_train_dir: train
   transformed_test_dir: test
   preprocessing_dir: preprocessed
   preprocessed_object_file_name: preprocessed.pkl
+  
+
+
+
+
   
 model_trainer_config:
   trained_model_dir: trained_model
