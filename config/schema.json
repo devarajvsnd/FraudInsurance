@@ -1,4 +1,4 @@
-{	"SampleFileName": "fraudDetection_021119920_010222.csv",
+{	
 	"LengthOfDateStampInFile": 9,
 	"LengthOfTimeStampInFile": 6,
 	"NumberofColumns" : 40,
@@ -43,5 +43,23 @@
 		"auto_year": "Integer",
 		"fraud_reported": "varchar",
 		"_c39": "varchar"
-	}
+	},
+
+	"target_column": "fraud_reported",
+
+	"columns_with_string_datatype": ["policy_bind_date", "policy_state", "policy_csl", "insured_sex", 
+	"insured_education_level", "insured_occupation", "insured_hobbies", "insured_relationship", 
+	"incident_state", "incident_date", "incident_type", "collision_type", "incident_severity", 
+	"authorities_contacted", "incident_city", "incident_location", "property_damage", 
+	"police_report_available", "auto_make","auto_model", "fraud_reported"],
+
+	"numerical_columns": ["months_as_customer", "policy_deductable", "umbrella_limit", "capital-gains", 
+	"capital-loss", "incident_hour_of_the_day", "number_of_vehicles_involved", "bodily_injuries", 
+	"witnesses", "injury_claim", "property_claim", "vehicle_claim"],
+
+	
+	"columns_to remove": ["policy_number", "policy_bind_date", "policy_state","insured_zip", 
+	"incident_location", "incident_date","incident_state", "incident_city", "insured_hobbies",
+	"auto_make", "auto_model", "auto_year", "age", "total_claim_amount"]
+
 }
