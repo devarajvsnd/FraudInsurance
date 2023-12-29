@@ -63,7 +63,7 @@ COLUMN_TOTAL_BEDROOM = "total_bedrooms"
 DATASET_SCHEMA_COLUMNS_KEY=  "columns"
 
 NUMERICAL_COLUMN_KEY="numerical_columns"
-CATEGORICAL_COLUMN_KEY = "categorical_columns"
+CATEGORICAL_COLUMN_KEY = "columns_with_string_datatype"
 
 TARGET_COLUMN_KEY="target_column"
 

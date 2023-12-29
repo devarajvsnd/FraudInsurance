@@ -21,6 +21,63 @@ from sklearn.preprocessing import StandardScaler
 from imblearn.over_sampling import RandomOverSampler
 from os import listdir
 
+
+class CustomEncoder(BaseEstimator, TransformerMixin):
+
+    def __init__(self):
+        pass
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        X_mapped = X.copy()
+        
+        # Mapping for 'policy_csl'
+        policy_csl_mapping = {'100/300': 1, '250/500': 2.5, '500/1000': 5}
+        X_mapped['policy_csl'] = X_mapped['policy_csl'].map(policy_csl_mapping)
+        
+        # Mapping for 'insured_education_level'
+        education_level_mapping = {
+            'JD': 1, 'High School': 2, 'College': 3,
+            'Masters': 4, 'Associate': 5, 'MD': 6, 'PhD': 7
+        }
+        X_mapped['insured_education_level'] = X_mapped['insured_education_level'].map(education_level_mapping)
+        
+        # Mapping for 'incident_severity'
+        incident_severity_mapping = {
+            'Trivial Damage': 1, 'Minor Damage': 2,
+            'Major Damage': 3, 'Total Loss': 4
+        }
+        X_mapped['incident_severity'] = X_mapped['incident_severity'].map(incident_severity_mapping)
+        
+        # Mapping for 'insured_sex'
+        sex_mapping = {'FEMALE': 0, 'MALE': 1}
+        X_mapped['insured_sex'] = X_mapped['insured_sex'].map(sex_mapping)
+        
+        # Mapping for 'property_damage'
+        property_damage_mapping = {'NO': 0, 'YES': 1}
+        X_mapped['property_damage'] = X_mapped['property_damage'].map(property_damage_mapping)
+        
+        # Mapping for 'police_report_available'
+        police_report_mapping = {'NO': 0, 'YES': 1}
+        X_mapped['police_report_available'] = X_mapped['police_report_available'].map(police_report_mapping)
+
+        return X_mapped
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class DataPreprocessing:
 
     def __init__(self, data_preprocessing_config: DataPreprocessingConfig,
@@ -78,7 +135,7 @@ class DataPreprocessing:
 
             json_path=self.data_validation_artifact.schema_file_path
             json_info= read_json_file(json_path)
-            columns=json_info['columns_to remove']
+            columns=json_info['columns_to_remove']
          
             useful_data=data.drop(labels=columns, axis=1) 
             # drop the labels specified in the columns
@@ -90,69 +147,48 @@ class DataPreprocessing:
             raise FraudDetectionException(e,sys) from e
         
 
-    def is_null_present(self,data):
-        """
-        Method Name: is_null_present
-        Description: This method checks whether there are null values present in the pandas Dataframe or not.
-        Output: Returns True if null values are present in the DataFrame, False if they are not present and
-                returns the list of columns for which null values are present.
-        On Failure: Raise Exception"""
+     
 
+    def get_data_transformer_object(self)->ColumnTransformer:
         try:
-            logging.info('Entered the is_null_present method of the Preprocessor class')
-            null_present = False
-            cols_with_missing_values=[]
-            cols = data.columns
-        
-            null_counts=data.isna().sum() # check for the count of null values per column
+            schema_file_path = self.data_validation_artifact.schema_file_path
 
-            for i in range(len(null_counts)):
-                if null_counts[i]>0:
-                    null_present=True
-                    cols_with_missing_values.append(cols[i])
+            dataset_schema = read_json_file(file_path=schema_file_path)
 
-            if(null_present): # write the logs to see which columns have null values
-                dataframe_with_null = pd.DataFrame()
-                dataframe_with_null['columns'] = data.columns
-                dataframe_with_null['missing values count'] = np.asarray(data.isna().sum())
+            numerical_columns = dataset_schema[NUMERICAL_COLUMN_KEY]
+            categorical_columns = dataset_schema[CATEGORICAL_COLUMN_KEY]
 
-                dataframe_with_null.to_csv('preprocessing_data/null_values.csv') 
-                # storing the null column information to file
 
-            logging.info('Finding missing values is a success.Data written to the null values file\
-                         . Exited the is_null_present method of the Preprocessor class')
-            
-            return null_present, cols_with_missing_values
-        
+            num_pipeline = Pipeline(steps=[
+                ('imputer', SimpleImputer(strategy="median")),
+                ('scaler', StandardScaler())
+            ]
+            )
+
+            cat_pipeline = Pipeline(steps=[
+                 ('impute', SimpleImputer(strategy="most_frequent")),
+                 ('encoder_generator', CustomEncoder()),
+                 ('scaler', StandardScaler(with_mean=False))
+            ]
+            )
+
+            logging.info(f"Categorical columns: {categorical_columns}")
+            logging.info(f"Numerical columns: {numerical_columns}")
+
+
+            preprocessing = ColumnTransformer([
+                ('num_pipeline', num_pipeline, numerical_columns),
+                ('cat_pipeline', cat_pipeline, categorical_columns),
+            ])
+            return preprocessing
+
         except Exception as e:
-            raise FraudDetectionException(e,sys) from e
+            raise FraudDetectionException(e,sys) from e   
 
 
 
-    def impute_missing_values(self, data, cols_with_missing_values):
-            """
-            Method Name: impute_missing_values
-            Description: This method replaces all the missing values in the Dataframe using KNN Imputer.
-            Output: A Dataframe which has all the missing values imputed.
-            On Failure: Raise Exception """
-            
-            try:
-                logging.info('Entered the impute_missing_values method of the Preprocessor class')
-                data= data
-                cols_with_missing_values=cols_with_missing_values
-            
-                imputer = CategoricalImputer()
-                for col in cols_with_missing_values:
-                    data[col] = imputer.fit_transform(data[col])
-                logging.info('Imputing missing values Successful.\
-                            Exited the impute_missing_values method of the Preprocessor class')
-                return data
-            
-            except Exception as e:
-                raise FraudDetectionException(e,sys) from e
 
-
-
+    '''
 
     def encode_categorical_columns(self,data):
         """
@@ -197,6 +233,7 @@ class DataPreprocessing:
 
         except Exception as e:
             raise FraudDetectionException(e,sys) from e
+            
 
 
     def separate_label_feature(self, data):
@@ -221,66 +258,12 @@ class DataPreprocessing:
             return X, Y
         
         except Exception as e:
-            raise FraudDetectionException(e,sys) from e  
-
-
-    '''   
-    def handle_imbalanced_dataset(self,x,y):
-        """
-        Method Name: handle_imbalanced_dataset
-        Description: This method handles the imbalanced dataset to make it a balanced one.
-        Output: new balanced feature and target columns
-        On Failure: Raise Exception"""
-
-        try:
-            logging.info('Entered the handle_imbalanced_dataset method of the Preprocessor class')
-            rdsmple = RandomOverSampler()
-            x_sampled,y_sampled  = rdsmple.fit_sample(x,y)
-            logging.info('dataset balancing successful. Exited the handle_imbalanced_dataset method of the Preprocessor class')
-            return x_sampled, y_sampled
-
-        except Exception as e:
             raise FraudDetectionException(e,sys) from e
-        '''
-
-  
+            '''
         
 
-    def scale_numerical_columns(self,data):
-        """
-        Method Name: scale_numerical_columns
-        Description: This method scales the numerical values using the Standard scaler.
-        Output: A dataframe with scaled values
-        On Failure: Raise Exception """
+      
         
-        try:
-            logging.info('Entered the scale_numerical_columns method of the Preprocessor class')
-            self.data=data
-            json_path=self.data_validation_artifact.schema_file_path
-            json_info= read_json_file(json_path)
-            num_df=[json_info['numerical_columns']]
-     
-            scaler = StandardScaler()
-            scaled_data = scaler.fit_transform(num_df)
-            scaled_num_df = pd.DataFrame(data=scaled_data, columns=num_df.columns,index=data.index)
-            data.drop(columns=scaled_num_df.columns, inplace=True)
-            
-            data = pd.concat([scaled_num_df, data], axis=1)
-
-            logging.info('scaling for numerical values successful.\
-                          Exited the scale_numerical_columns method of the Preprocessor class')
-            return data
-
-        except Exception as e:
-            raise FraudDetectionException(e,sys) from e
-        
-
-    
-        
-
-
-
-
     def initiate_data_preprocessing(self)->DataPreprocessingArtifact:
         try:
             logging.info(f"Obtaining preprocessing object.")
@@ -288,52 +271,43 @@ class DataPreprocessing:
 
 
             logging.info(f"Obtaining training and test file path.")
-            train_file_path = self.data_ingestion_artifact.train_file_path
-            test_file_path = self.data_ingestion_artifact.test_file_path
+            file_path = self.data_ingestion_artifact.data_file_path
+            
             
 
             schema_file_path = self.data_validation_artifact.schema_file_path
             
-            logging.info(f"Loading training and test data as pandas dataframe.")
-            train_df = load_data(file_path=train_file_path, schema_file_path=schema_file_path)
+            logging.info(f"Loading data as pandas dataframe.")
+            data_df = load_data(file_path=file_path, schema_file_path=schema_file_path)
             
-            test_df = load_data(file_path=test_file_path, schema_file_path=schema_file_path)
-
             schema = read_json_file(file_path=schema_file_path)
 
             target_column_name = schema[TARGET_COLUMN_KEY]
 
 
             logging.info(f"Splitting input and target feature from training and testing dataframe.")
-            input_feature_train_df = train_df.drop(columns=[target_column_name],axis=1)
-            target_feature_train_df = train_df[target_column_name]
+            input_feature_data_df = data_df.drop(columns=[target_column_name],axis=1)
+            target_feature_data_df = data_df[target_column_name]
 
-            input_feature_test_df = test_df.drop(columns=[target_column_name],axis=1)
-            target_feature_test_df = test_df[target_column_name]
+          
+            logging.info(f"Applying preprocessing object on dataframe")
+            input_feature_data_arr=preprocessing_obj.fit_transform(input_feature_data_df)
+            
+            data_arr = np.c_[ input_feature_data_arr, np.array(target_feature_data_df)]
+           
+            transformed_data_dir = self.data_transformation_config.transformed_data_dir
             
 
-            logging.info(f"Applying preprocessing object on training dataframe and testing dataframe")
-            input_feature_train_arr=preprocessing_obj.fit_transform(input_feature_train_df)
-            input_feature_test_arr = preprocessing_obj.transform(input_feature_test_df)
-
-
-            train_arr = np.c_[ input_feature_train_arr, np.array(target_feature_train_df)]
-
-            test_arr = np.c_[input_feature_test_arr, np.array(target_feature_test_df)]
+            data_file_name = os.path.basename(data_file_path).replace(".csv",".npz")
             
-            transformed_train_dir = self.data_transformation_config.transformed_train_dir
-            transformed_test_dir = self.data_transformation_config.transformed_test_dir
 
-            train_file_name = os.path.basename(train_file_path).replace(".csv",".npz")
-            test_file_name = os.path.basename(test_file_path).replace(".csv",".npz")
-
-            transformed_train_file_path = os.path.join(transformed_train_dir, train_file_name)
-            transformed_test_file_path = os.path.join(transformed_test_dir, test_file_name)
-
-            logging.info(f"Saving transformed training and testing array.")
+            transformed_data_file_path = os.path.join(transformed_data_dir, data_file_name)
             
-            save_numpy_array_data(file_path=transformed_train_file_path,array=train_arr)
-            save_numpy_array_data(file_path=transformed_test_file_path,array=test_arr)
+
+            logging.info(f"Saving transformed data array.")
+            
+            save_numpy_array_data(file_path=transformed_data_file_path,array=data_arr)
+           
 
             preprocessing_obj_file_path = self.data_transformation_config.preprocessed_object_file_path
 
@@ -342,8 +316,7 @@ class DataPreprocessing:
 
             data_transformation_artifact = DataTransformationArtifact(is_transformed=True,
             message="Data transformation successfull.",
-            transformed_train_file_path=transformed_train_file_path,
-            transformed_test_file_path=transformed_test_file_path,
+            transformed_data_file_path=transformed_data_file_path,
             preprocessed_object_file_path=preprocessing_obj_file_path
 
             )
