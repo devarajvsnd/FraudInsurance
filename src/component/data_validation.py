@@ -10,9 +10,10 @@ from evidently.model_profile.sections import DataDriftProfileSection
 from evidently.dashboard import Dashboard
 from evidently.dashboard.tabs import DataDriftTab
 import json
-
-
 from src.util.util import read_json_file
+
+
+from src.constant import *
 
 
 class DataValidation:
@@ -88,38 +89,46 @@ class DataValidation:
         except Exception as e:
             raise FraudDetectionException(e,sys) from e
         
-    '''
-    def load_previous_data(self):
+    
+    def load_present_and_previous_data(self):
 
         try:
+            raw_data_dir = self.data_ingestion_artifact.data_file_path
+            file_name = os.listdir(raw_data_dir)[0]
+            file_path = os.path.join(raw_data_dir,file_name)
 
+            logging.info(f"Reading present file: [{file_path}]")
+            present_data_df = pd.read_csv(file_path)
+
+            
             logging.info("Loading data frame from the previous dataset")
 
-            previous_data_dir= self.data_ingestion_artifact.data_file_path
+            data_ingestion_dir = os.path.join(ROOT_DIR, [TRAINING_PIPELINE_ARTIFACT_DIR_KEY], 
+                                                       [DATA_INGESTION_ARTIFACT_DIR])
+            
+            file_names_list = os.listdir(data_ingestion_dir)
+            file_names_list.remove(max(file_names_list))
+            previous_file=max(file_names_list)
+            previous_file_name = os.listdir(previous_file)[0]
+            previous_file_path= os.path.join(data_ingestion_dir,previous_file, previous_file_name)
 
-        
+            logging.info(f"Reading previous file: [{previous_file_path}]")
+            previous_data_df = pd.read_csv(previous_file_path)
 
-
-
-
-
-            pass
+            return present_data_df, previous_data_df
 
         except Exception as e:
             raise FraudDetectionException(e,sys) from e 
 
-
-
-        
-        
+       
 
     def get_and_save_data_drift_report(self):
         try:
             profile = Profile(sections=[DataDriftProfileSection()])
 
-            train_df,test_df = self.get_train_and_test_df()
+            present_data_df, previous_data_df = self.load_present_and_previous_data()
 
-            profile.calculate(train_df,test_df)
+            profile.calculate(present_data_df, previous_data_df)
 
             report = json.loads(profile.json())
 
@@ -136,8 +145,8 @@ class DataValidation:
     def save_data_drift_report_page(self):
         try:
             dashboard = Dashboard(tabs=[DataDriftTab()])
-            train_df,test_df = self.get_train_and_test_df()
-            dashboard.calculate(train_df,test_df)
+            present_data_df, previous_data_df = self.load_present_and_previous_data()
+            dashboard.calculate(present_data_df, previous_data_df)
 
             report_page_file_path = self.data_validation_config.report_page_file_path
             report_page_dir = os.path.dirname(report_page_file_path)
@@ -155,7 +164,7 @@ class DataValidation:
         except Exception as e:
             raise FraudDetectionException(e,sys) from e
 
-            '''
+            
 
     def initiate_data_validation(self)->DataValidationArtifact :
         try:

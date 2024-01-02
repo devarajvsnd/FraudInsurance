@@ -7,8 +7,7 @@ data_ingestion_config:
   raw_data_dir: raw_data
   tgz_download_dir: tgz_data
   ingested_dir: ingested_data
-  ingested_train_dir: train
-  ingested_test_dir: test 
+
 
 data_validation_config:
   schema_dir: config
@@ -16,24 +15,14 @@ data_validation_config:
   report_file_name: report.json
   report_page_file_name: report.html
 
-data_preprocessing_config:
-
-  data_preprocessing: data_preprocessing
-  preprocessed_dir: reprocessed_data
-  preprocessed_object_file_name: preprocessed.pkl
-
-
-
 
 data_transformation_config:
+  
   transformed_dir: transformed_data
   transformed_train_dir: train
   transformed_test_dir: test
   preprocessing_dir: preprocessed
   preprocessed_object_file_name: preprocessed.pkl
-  
-
-
 
 
   
@@ -43,6 +32,9 @@ model_trainer_config:
   base_accuracy: 0.6
   model_config_dir: config
   model_config_file_name: model.yaml
+
+
+
 
 
 model_evaluation_config:

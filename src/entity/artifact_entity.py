@@ -1,16 +1,15 @@
 from collections import namedtuple
 
-DataIngestionArtifact = namedtuple("DataIngestionArtifact", [ "data_file_path", "is_ingested", "message"])
+DataIngestionArtifact = namedtuple("DataIngestionArtifact", ["data_file_path", "is_ingested", "message"])
 
 DataValidationArtifact = namedtuple("DataValidationArtifact",
 ["schema_file_path","report_file_path","report_page_file_path","is_validated","message"])
 
 
-DataPreprocessingArtifact = namedtuple("DataPreprocessingArtifact",
- ["is_preprocessed", "message", "preprocessed_data_file_path", "preprocessed_object_file_path"])
+DataTransformationArtifact = namedtuple("DataTransformationArtifact", 
+                                        ["is_transformed", "message", "transformed_data_file_path", 
+                                         "preprocessed_object_file_path", "number_of_clusters"])
 
-DataTransformationArtifact = namedtuple("DataTransformationArtifact",
- ["is_transformed", "message", "transformed_data_file_path", "preprocessed_object_file_path"])
 
 
 

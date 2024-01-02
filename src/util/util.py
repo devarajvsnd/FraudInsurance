@@ -5,7 +5,7 @@ import numpy as np
 import dill
 import pandas as pd
 from src.constant import *
-import json
+import json, pickle
 
 def write_yaml_file(file_path:str,data:dict=None):
     """
@@ -47,38 +47,45 @@ def read_json_file(file_path:str)->dict:
 
 
 
-
-
-
-
-
-
-def save_numpy_array_data(file_path: str, array: np.array):
+def save_data(file_path: str, dataframe: pd.DataFrame):
     """
-    Save numpy array data to file
+    Save numpy data to file
     file_path: str location of file to save
-    array: np.array data to save
-    """
+        """
     try:
         dir_path = os.path.dirname(file_path)
         os.makedirs(dir_path, exist_ok=True)
         with open(file_path, 'wb') as file_obj:
-            np.save(file_obj, array)
+            pd.save(file_obj, dataframe)
     except Exception as e:
         raise FraudDetectionException(e, sys) from e
 
 
-def load_numpy_array_data(file_path: str) -> np.array:
-    """
-    load numpy array data from file
-    file_path: str location of file to load
-    return: np.array data loaded
-    """
+
+def save_model(file_path:str, file):
+
+
     try:
-        with open(file_path, 'rb') as file_obj:
-            return np.load(file_obj)
+        dir_path = os.path.dirname(file_path)
+        os.makedirs(dir_path, exist_ok=True)
+
+
+
+        path = os.path.join(model_directory, filename) #create seperate directory for each cluster
+        if os.path.isdir(path): #remove previously existing models for each clusters
+            shutil.rmtree(model_directory)
+            os.makedirs(path)
+        else:
+            os.makedirs(path) #
+        with open(path +'/' + filename+'.sav',
+                    'wb') as f:
+            pickle.dump(model, f) # save the model to file'''
+
     except Exception as e:
         raise FraudDetectionException(e, sys) from e
+
+
+
 
 
 def save_object(file_path:str,obj):
@@ -108,7 +115,7 @@ def load_object(file_path:str):
 
 def load_data(file_path: str, schema_file_path: str) -> pd.DataFrame:
     try:
-        datatset_schema = read_yaml_file(schema_file_path)
+        datatset_schema = read_json_file(schema_file_path)
 
         schema = datatset_schema[DATASET_SCHEMA_COLUMNS_KEY]
 
@@ -128,4 +135,24 @@ def load_data(file_path: str, schema_file_path: str) -> pd.DataFrame:
 
     except Exception as e:
         raise FraudDetectionException(e,sys) from e
+    
+
+
+
+def scale_numerical_columns(data):
+
+
+    num_df = data[['months_as_customer', 'policy_deductable', 'umbrella_limit',
+                      'capital-gains', 'capital-loss', 'incident_hour_of_the_day',
+                      'number_of_vehicles_involved', 'bodily_injuries', 'witnesses', 'injury_claim',
+                      'property_claim',
+                      'vehicle_claim']]
+
+    scaler = StandardScaler()
+    scaled_data = scaler.fit_transform(num_df)
+    scaled_num_df = pd.DataFrame(data=scaled_data, columns=num_df.columns,index=data.index)
+    data.drop(columns=scaled_num_df.columns, inplace=True)
+    data = pd.concat([scaled_num_df, data], axis=1)
+
+    return data
     
