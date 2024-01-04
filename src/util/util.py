@@ -5,7 +5,7 @@ import numpy as np
 import dill
 import pandas as pd
 from src.constant import *
-import json, pickle
+import json, pickle, shutil
 
 def write_yaml_file(file_path:str,data:dict=None):
     """
@@ -56,24 +56,39 @@ def save_data(file_path: str, dataframe: pd.DataFrame):
         dir_path = os.path.dirname(file_path)
         os.makedirs(dir_path, exist_ok=True)
         with open(file_path, 'wb') as file_obj:
-            pd.save(file_obj, dataframe)
+            dataframe.to_csv(file_path, index=False)
+    except Exception as e:
+        raise FraudDetectionException(e, sys) from e
+
+
+def save_image(file_path: str, dataframe: pd.DataFrame):
+    """
+    Save numpy data to file
+    file_path: str location of file to save
+        """
+    try:
+        dir_path = os.path.dirname(file_path)
+        os.makedirs(dir_path, exist_ok=True)
+        with open(file_path, 'wb') as file_obj:
+            dataframe.to_csv(file_path, index=False)
     except Exception as e:
         raise FraudDetectionException(e, sys) from e
 
 
 
-def save_model(file_path:str, file):
+
+def save_model(file_path:str, model, filename):
 
 
     try:
-        dir_path = os.path.dirname(file_path)
-        os.makedirs(dir_path, exist_ok=True)
+        #dir_path = os.path.dirname(file_path)
+        #os.makedirs(dir_path, exist_ok=True)
 
 
 
-        path = os.path.join(model_directory, filename) #create seperate directory for each cluster
+        path = os.path.join(file_path, filename) #create seperate directory for each cluster
         if os.path.isdir(path): #remove previously existing models for each clusters
-            shutil.rmtree(model_directory)
+            shutil.rmtree(file_path)
             os.makedirs(path)
         else:
             os.makedirs(path) #
@@ -83,7 +98,6 @@ def save_model(file_path:str, file):
 
     except Exception as e:
         raise FraudDetectionException(e, sys) from e
-
 
 
 
@@ -113,11 +127,14 @@ def load_object(file_path:str):
         raise FraudDetectionException(e,sys) from e
 
 
-def load_data(file_path: str, schema_file_path: str) -> pd.DataFrame:
+def load_data(path: str, schema_file_path: str) -> pd.DataFrame:
     try:
         datatset_schema = read_json_file(schema_file_path)
 
         schema = datatset_schema[DATASET_SCHEMA_COLUMNS_KEY]
+
+        file_name = os.listdir(path)[0]
+        file_path = os.path.join(path,file_name)
 
         dataframe = pd.read_csv(file_path)
 

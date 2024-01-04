@@ -1,6 +1,6 @@
 import sys,os
 import numpy as np
-from cgi import test
+#from cgi import test
 from sklearn import preprocessing
 from src.exception import FraudDetectionException
 from src.logger import logging
@@ -13,12 +13,12 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 import pandas as pd
 from src.constant import *
-from src.util.util import  read_json_file, save_data, save_object, load_data, save_cluster_model
+from src.util.util import  read_json_file, save_data, save_object, load_data, save_model
 
 
 
 
-from sklearn_pandas import CategoricalImputer
+
 from sklearn.preprocessing import StandardScaler
 from imblearn.over_sampling import RandomOverSampler
 from os import listdir
@@ -138,7 +138,7 @@ class DataTransformation:
             useful_data=data.drop(labels=columns, axis=1) 
             # drop the labels specified in the columns
 
-            data.replace('?',np.NaN,inplace=True)
+            useful_data.replace('?',np.NaN,inplace=True)
             logging.info('Removing certain columns from the dataframe and replacing ? with Null values')
            
             return useful_data
@@ -146,7 +146,7 @@ class DataTransformation:
             raise FraudDetectionException(e,sys) from e
         
 
-     
+    '''
 
     def get_data_transformer_object(self)-> pd.DataFrame:
         try:
@@ -154,10 +154,9 @@ class DataTransformation:
 
             dataset_schema = read_json_file(file_path=schema_file_path)
 
-            numerical_columns = dataset_schema[NUMERICAL_COLUMN_KEY]-dataset_schema[COLUMNS_TO_REMOVE]
-            categorical_columns = dataset_schema[CATEGORICAL_COLUMN_KEY]-dataset_schema[COLUMNS_TO_REMOVE]
+            numerical_columns = [x for x in dataset_schema[NUMERICAL_COLUMN_KEY] if x not in dataset_schema[COLUMNS_TO_REMOVE] ]
+            categorical_columns = [x for x in dataset_schema[CATEGORICAL_COLUMN_KEY] if x not in dataset_schema[COLUMNS_TO_REMOVE] ]
             ohe_columns=dataset_schema[COLUMNS_FOR_OHE]
-
 
             num_pipeline = Pipeline(steps=[
                 ('imputer', SimpleImputer(strategy="median"))
@@ -184,21 +183,56 @@ class DataTransformation:
                 ('cat_pipeline_for_custom', cat_pipeline, categorical_columns),
                 ('cat_pipeline_ohe', ohe_pipeline, ohe_columns) ])
             
-            transformed_columns = list(numerical_columns) + list(categorical_columns) + list(ohe_columns)
-
-            # Convert transformed_data arrays/matrices into Pandas DataFrames
-            transformed_dataframes = [pd.DataFrame(data=preprocessing[:, idx], columns=[col]) for idx, 
-                                      col in enumerate(transformed_columns)]
-
-            # Combine DataFrames into a single DataFrame with correct columns
-            transformed_df = pd.concat(transformed_dataframes, axis=1)
-
-            return transformed_df
+            return preprocessing
 
         except Exception as e:
-            raise FraudDetectionException(e,sys) from e   
- 
+            raise FraudDetectionException(e,sys) from e''' 
+
+
+    def impute_missing_values(self, data)-> pd.DataFrame:
+        try:
+            schema_file_path = self.data_validation_artifact.schema_file_path
+
+            dataset_schema = read_json_file(file_path=schema_file_path)
+
+            numerical_columns = [x for x in dataset_schema[NUMERICAL_COLUMN_KEY] 
+                                 if x not in dataset_schema[COLUMNS_TO_REMOVE] ]
+            categorical_columns = [x for x in dataset_schema[CATEGORICAL_COLUMN_KEY] 
+                                   if x not in dataset_schema[COLUMNS_TO_REMOVE] ]
+            logging.info('Imputing numerical values')
+            num_imputer = SimpleImputer(strategy='mean')
+            data[numerical_columns] = num_imputer.fit_transform(data[numerical_columns])
             
+            logging.info('Imputing categorical values')
+            cat_imputer = SimpleImputer(strategy='most_frequent')
+            data[categorical_columns] = cat_imputer.fit_transform(data[categorical_columns])
+
+            return data
+
+        except Exception as e:
+            raise FraudDetectionException(e,sys) from e
+        
+
+
+    def encode_data(self, data)->pd.DataFrame:
+        try:
+            custom_encoding_obj=CustomEncoder()
+            logging.info('Cusom encoding the data')
+            data=custom_encoding_obj.fit_transform(data)
+
+            schema_file_path = self.data_validation_artifact.schema_file_path
+
+            dataset_schema = read_json_file(file_path=schema_file_path)
+            ohe_columns=dataset_schema[COLUMNS_FOR_OHE]
+            logging.info('One Hot Eencoding for remaining categorical data')
+            encoded_data = pd.get_dummies(data, columns=ohe_columns, drop_first=True)
+
+            return encoded_data
+
+        except Exception as e:
+            raise FraudDetectionException(e,sys) from e
+
+
     def separate_label_feature(self, data):
         """
         Method Name: separate_label_feature
@@ -247,10 +281,10 @@ class DataTransformation:
             plt.ylabel('WCSS')
             #plt.show()
             img_name='K-Means_Elbow.PNG'
-            transformed_data_dir = self.data_transformation_config.transformed_data_dir
-            img_file_path = os.path.join(transformed_data_dir, img_name)
+            path = self.data_transformation_config.cluster_object_file_path
+            img_file_path = os.path.join(path, img_name)
 
-            plt.savefig(img_file_path) # saving the elbow plot locally
+            #plt.savefig(img_file_path) # saving the elbow plot locally
             # finding the value of the optimum cluster programmatically
             kn = KneeLocator(range(1, 11), wcss, curve='convex', direction='decreasing')
             logging.info('The optimum number of clusters is: '+str(kn.knee)+' \
@@ -275,67 +309,65 @@ class DataTransformation:
             #self.data = self.data[~self.data.isin([np.nan, np.inf, -np.inf]).any(1)]
             y_kmeans=kmeans.fit_predict(data) #  divide data into clusters
 
+            path=self.data_transformation_config.cluster_object_file_path
             
-           # save_model = file_op.save_model(kmeans, 'KMeans') 
+            save_model(path, kmeans, 'KMeans') 
             # saving the KMeans model to directory
             # passing 'Model' as the functions need three parameters
 
             data['Cluster']=y_kmeans  # create a new column in dataset for storing the cluster information
-            logging.info( 'succesfully created '+str(self.kn.knee)+ 'clusters. Exited the create_clusters method of the KMeansClustering class')
+            logging.info( 'succesfully created '+str(number_of_clusters)+ 'clusters. Exited the create_clusters method of the KMeansClustering class')
             return data
         
         except Exception as e:
             raise FraudDetectionException(e,sys) from e
         
-
-      
-        
+          
     def initiate_data_transformation(self)->DataTransformationArtifact:
         try:
             logging.info(f"Obtaining data file path.")
             schema_file_path = self.data_validation_artifact.schema_file_path
             data_file_path = self.data_ingestion_artifact.data_file_path
             logging.info(f"Loading data as pandas dataframe.")
-            data_df = load_data(file_path=data_file_path, schema_file_path=schema_file_path)
 
-            logging.info(f"Obtaining preprocessing object.")
-            preprocessing_obj = self.get_data_transformer_object()
-           
+            #data_df = load_data(path=data_file_path, schema_file_path=schema_file_path)
+
+            file_name = os.listdir(data_file_path)[0]
+            file_path = os.path.join(data_file_path,file_name)
+
+            data_df = pd.read_csv(file_path)
+
             schema = read_json_file(file_path=schema_file_path)
             target_column_name = schema[TARGET_COLUMN_KEY]
 
-
             space_removed_data= self.remove_unwanted_spaces(data_df)
-            columns_removed_data=self.remove_columns(space_removed_data)  
+            columns_removed_data=self.remove_columns(space_removed_data)
 
-            logging.info(f"Applying preprocessing object on dataframe")
-            cleaned_encoded_data=preprocessing_obj.fit_transform(columns_removed_data)
-            input_feature_data_df = cleaned_encoded_data.drop(columns=target_column_name,axis=1)
-            target_feature_data_df = cleaned_encoded_data[target_column_name]
-        
-            
-            clusters=elbow_plot(input_feature_data_df)
+            logging.info('Imputing missing values')
+            imputed_data=self.impute_missing_values(columns_removed_data)
+
+            logging.info('Encoding categorical values')
+            encoded_data=self.encode_data(imputed_data)
+
+            input_feature_data_df = encoded_data.drop(columns=target_column_name,axis=1)
+            target_feature_data_df = encoded_data[target_column_name]
+
+            clusters=self.elbow_plot(input_feature_data_df)
             clustered_data=self.create_clusters(input_feature_data_df, clusters)
             clustered_data['Labels']=target_feature_data_df
 
-
-
             transformed_data_dir = self.data_transformation_config.transformed_data_dir
-            data_file_name = os.path.basename(data_file_path)
+            data_file_name = 'Transformed_dataframe.csv'
 
             transformed_data_file_path = os.path.join(transformed_data_dir, data_file_name)
-            
-            save_data(file_path=transformed_data_file_path,data=clustered_data)
+            logging.info(f"Saving transformed data.")
+            save_data(transformed_data_file_path, clustered_data)
+
                  
-            preprocessing_obj_file_path = self.data_transformation_config.preprocessed_object_file_path
-
-            logging.info(f"Saving preprocessing object.")
-            save_object(file_path=preprocessing_obj_file_path,obj=preprocessing_obj)
-
             data_transformation_artifact = DataTransformationArtifact(is_transformed=True,
             message="Data transformation successfull.",
-            transformed_data_file_path=transformed_data_file_path,
-            preprocessed_object_file_path=preprocessing_obj_file_path,
+            transformed_data_file_path=transformed_data_file_path, 
+            cluster_object_file_path=self.data_transformation_config.cluster_object_file_path,
             number_of_clusters=clusters
             )
 

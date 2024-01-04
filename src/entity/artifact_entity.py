@@ -8,7 +8,7 @@ DataValidationArtifact = namedtuple("DataValidationArtifact",
 
 DataTransformationArtifact = namedtuple("DataTransformationArtifact", 
                                         ["is_transformed", "message", "transformed_data_file_path", 
-                                         "preprocessed_object_file_path", "number_of_clusters"])
+                                         "cluster_object_file_path", "number_of_clusters"])
 
 
 

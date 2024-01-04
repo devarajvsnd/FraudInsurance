@@ -11,6 +11,7 @@ from evidently.dashboard import Dashboard
 from evidently.dashboard.tabs import DataDriftTab
 import json
 from src.util.util import read_json_file
+import os
 
 
 from src.constant import *
@@ -103,14 +104,18 @@ class DataValidation:
             
             logging.info("Loading data frame from the previous dataset")
 
-            data_ingestion_dir = os.path.join(ROOT_DIR, [TRAINING_PIPELINE_ARTIFACT_DIR_KEY], 
-                                                       [DATA_INGESTION_ARTIFACT_DIR])
+            
+            data_ingestion_dir = os.path.join(ROOT_DIR, 'src', 'artifact', 
+                                                       DATA_INGESTION_ARTIFACT_DIR)
             
             file_names_list = os.listdir(data_ingestion_dir)
             file_names_list.remove(max(file_names_list))
             previous_file=max(file_names_list)
-            previous_file_name = os.listdir(previous_file)[0]
-            previous_file_path= os.path.join(data_ingestion_dir,previous_file, previous_file_name)
+            
+            file_dir=os.path.join(data_ingestion_dir, previous_file, 'raw_data') 
+
+            previous_file_name = os.listdir(file_dir)[0]
+            previous_file_path= os.path.join(file_dir, previous_file_name)
 
             logging.info(f"Reading previous file: [{previous_file_path}]")
             previous_data_df = pd.read_csv(previous_file_path)
@@ -127,6 +132,13 @@ class DataValidation:
             profile = Profile(sections=[DataDriftProfileSection()])
 
             present_data_df, previous_data_df = self.load_present_and_previous_data()
+
+
+            null_columns_present = present_data_df.columns[present_data_df.isnull().all()]
+            null_columns_previous = previous_data_df.columns[previous_data_df.isnull().all()]
+            present_data_df.drop(null_columns_present, axis=1, inplace=True)
+            previous_data_df.drop(null_columns_previous, axis=1, inplace=True)
+            
 
             profile.calculate(present_data_df, previous_data_df)
 
@@ -146,6 +158,14 @@ class DataValidation:
         try:
             dashboard = Dashboard(tabs=[DataDriftTab()])
             present_data_df, previous_data_df = self.load_present_and_previous_data()
+
+
+            null_columns_present = present_data_df.columns[present_data_df.isnull().all()]
+            null_columns_previous = previous_data_df.columns[previous_data_df.isnull().all()]
+            present_data_df.drop(null_columns_present, axis=1, inplace=True)
+            previous_data_df.drop(null_columns_previous, axis=1, inplace=True)
+
+
             dashboard.calculate(present_data_df, previous_data_df)
 
             report_page_file_path = self.data_validation_config.report_page_file_path
@@ -170,7 +190,7 @@ class DataValidation:
         try:
             self.is_file_exists()
             self.validate_dataset_schema()
-          # self.is_data_drift_found()
+            self.is_data_drift_found()
 
             data_validation_artifact = DataValidationArtifact(
                 schema_file_path=self.data_validation_config.schema_file_path,

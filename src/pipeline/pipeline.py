@@ -48,7 +48,7 @@ class Pipeline:
             raise FraudDetectionException(e, sys)
 
 
-    def start_model_trainer(self):
+    def start_model_trainer(self) :
         pass
 
     def start_model_evaluation(self):
@@ -63,9 +63,10 @@ class Pipeline:
 
             data_ingestion_artifact = self.start_data_ingestion()
             data_validation_artifact = self.start_data_validation(data_ingestion_artifact=data_ingestion_artifact)
+            dataTransformationArtifact=self.start_data_transformation(data_ingestion_artifact=data_ingestion_artifact,
+                                                                      data_validation_artifact=data_validation_artifact)
 
-
-
+            
 
         except Exception as e:
             raise FraudDetectionException(e,sys) from e
