@@ -14,7 +14,7 @@ from sklearn.metrics import r2_score,mean_squared_error
 
 
 from xgboost import XGBClassifier 
-from sklearn.metrics import roc_auc_score, accuracy_score 
+from sklearn.metrics import roc_auc_score, accuracy_score,confusion_matrix 
 from sklearn.svm import SVC
 
 
@@ -47,7 +47,7 @@ BestModel = namedtuple("BestModel", ["model_serial_number",
                                  "test_accuracy", "model_accuracy", "index_number"])
 '''
 MetricInfoArtifact = namedtuple("MetricInfoArtifact",
-                                ["model_name", "model_object", "train_acc", "test_acc", "model_accuracy", "confusion_mat", "index_number"])
+                                ["model_name", "model_object", "train_accuracy", "test_accuracy", "model_accuracy", "confusion_matrix", "index_number"])
 
 
 def evaluate_classification_model(model_list: list, X_train:np.ndarray, y_train:np.ndarray, X_test:np.ndarray, y_test:np.ndarray, base_accuracy:float=0.6)->MetricInfoArtifact:
@@ -61,55 +61,58 @@ def evaluate_classification_model(model_list: list, X_train:np.ndarray, y_train:
     y_train: Training dataset target feature
     X_test: Testing dataset input feature
     y_test: Testing dataset input feature
-    
-    It return a named tuple
-    
-    MetricInfoArtifact = namedtuple("MetricInfo",
-                                ["model_name", "model_object", "train_acc", "test_acc", "confusion_mat", "index_number"])
+
     """
     try:
     
         index_number = 0
         metric_info_artifact = None
         for model in model_list:
-            model_name = str(model)  #getting model name based on model object
+            model_name = type(model).__name__#getting model name based on model object
             logging.info(f"{'>>'*30}Started evaluating model: [{type(model).__name__}] {'<<'*30}")
-            '''try:
-                model.fit(X_train, y_train)
-            except NotFittedError as e:
-                logging.warning(f"Model {model_name} is not fitted. Skipping evaluation.")
-                continue'''
-
-             # Getting predictions for training and testing dataset
+           
+            # Getting predictions for training and testing dataset
             y_train_pred = model.predict(X_train)
             y_test_pred = model.predict(X_test)
 
             # Calculating accuracy score on training and testing dataset
             train_acc = accuracy_score(y_train, y_train_pred)
-            #test_acc = accuracy_score(y_test, y_test_pred)
+            
             if len(y_test.unique()) == 1: 
                 test_acc = accuracy_score(y_test, y_test_pred)
-            #logger_object.log(self.file_object, 'Accuracy for XGBoost:' + str(self.xgboost_score))  # Log AUC
             else:
                 test_acc = roc_auc_score(y_test, y_test_pred)
 
+            # Calculating harmonic mean of train_accuracy and test_accuracy
+            model_accuracy = (2 * (train_acc * test_acc)) / (train_acc + test_acc)
+            diff_test_train_acc = abs(test_acc - train_acc)
 
             # Generating confusion matrix
             confusion_mat = confusion_matrix(y_test, y_test_pred)
 
-            # Logging important metrics
+            #logging all important metric
             logging.info(f"{'>>'*30} Score {'<<'*30}")
-            logging.info(f"Train Accuracy: {train_acc}\t Test Accuracy: {test_acc}")
+            logging.info(f"Train Score\t\t Test Score\t\t Average Score")
+            logging.info(f"{train_acc}\t\t {test_acc}\t\t{model_accuracy}")
 
-            # If model accuracy is greater than base accuracy, consider it
-            if test_acc >= base_accuracy:
+            logging.info(f"{'>>'*30} Loss {'<<'*30}")
+            logging.info(f"Diff test train accuracy: [{diff_test_train_acc}].") 
+ 
+            #if model accuracy is greater than base accuracy and train and test score is within certain thershold
+            #we will accept that model as accepted model
+
+            
+            #if test_acc >= base_accuracy:
+            if model_accuracy >= base_accuracy and diff_test_train_acc < 0.3:
                 base_accuracy = test_acc
                 metric_info_artifact = MetricInfoArtifact(model_name=model_name,
                                                           model_object=model,
                                                           train_accuracy=train_acc,
                                                           test_accuracy=test_acc,
+                                                          model_accuracy=model_accuracy,
                                                           confusion_matrix=confusion_mat,
                                                           index_number=index_number)
+                
                 logging.info(f"Acceptable model found {metric_info_artifact}. ")
                 
             index_number += 1

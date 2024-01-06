@@ -1,11 +1,11 @@
 
-from src.exception import HousingException
+from src.exception import FraudDetectionException
 import sys
 from src.logger import logging
 from typing import List
 from src.entity.artifact_entity import DataTransformationArtifact, ModelTrainerArtifact
 from src.entity.config_entity import ModelTrainerConfig
-from src.util.util import load_numpy_array_data,save_object,load_object, scale_numerical_columns
+from src.util.util import save_object,load_object, scale_numerical_columns, save_model
 from src.entity.model_factory import MetricInfoArtifact, ModelFactory,GridSearchedBestModel
 from src.entity.model_factory import evaluate_classification_model
 
@@ -50,20 +50,22 @@ class ModelTrainer:
             self.model_trainer_config = model_trainer_config
             self.data_transformation_artifact = data_transformation_artifact
         except Exception as e:
-            raise HousingException(e, sys) from e
+            raise FraudDetectionException(e, sys) from e
 
     def initiate_model_trainer(self)->ModelTrainerArtifact:
         try:
             logging.info(f"Loading transformed training dataset")
             transformed_data_file_path = self.data_transformation_artifact.transformed_data_file_path
 
-            
             file_name = os.listdir(transformed_data_file_path)[0]
             file_path = os.path.join(transformed_data_file_path,file_name)
             logging.info(f"Reading csv file: [{file_path}]")
             data=pd.read_csv(file_path)
 
             list_of_clusters=data['Cluster'].unique()
+            train_acc={}
+            test_acc={}
+            model_acc={}
 
             for i in list_of_clusters:
                 cluster_data=data[data['Cluster']==i]
@@ -99,30 +101,36 @@ class ModelTrainer:
                 metric_info:MetricInfoArtifact = evaluate_classification_model(model_list=model_list,X_train=x_train,y_train=y_train,X_test=x_test,y_test=y_test,base_accuracy=base_accuracy)
 
                 logging.info(f"Best found model on both training and testing dataset.")
-                
-                preprocessing_obj=  load_object(file_path=self.data_transformation_artifact.preprocessed_object_file_path)
                 model_object = metric_info.model_object
 
 
                 trained_model_file_path=self.model_trainer_config.trained_model_file_path
-                fraud_model = FraudDetectionEstimatorModel(preprocessing_object=preprocessing_obj,trained_model_object=model_object)
+                name=metric_info.model_name+str(i)
                 logging.info(f"Saving model at path: {trained_model_file_path}")
-                save_object(file_path=trained_model_file_path,obj=fraud_model)
+                save_model(trained_model_file_path, model_object, name)
+
+                #Appending Train, test and Model accuracy for each clusters
+                train_acc[name]=metric_info.train_accuracy
+                test_acc[name]=metric_info.test_accuracy
+                model_acc[name]=metric_info.model_accuracy
+                
 
 
-                model_trainer_artifact=  ModelTrainerArtifact(is_trained=True,message="Model Trained successfully", 
+            model_trainer_artifact=  ModelTrainerArtifact(is_trained=True,message="Model Trained successfully", 
                                                             trained_model_file_path=trained_model_file_path, 
-                                                            train_accuracy=metric_info.train_accuracy, 
-                                                            test_accuracy=metric_info.test_accuracy, 
-                                                            confusion_matrix=metric_info.confusion_mat)
+                                                            train_accuracy=train_acc, 
+                                                            test_accuracy=test_acc, 
+                                                            model_accuracy=model_acc)
 
 
 
 
-                logging.info(f"Model Trainer Artifact: {model_trainer_artifact}")
-                return model_trainer_artifact
+            logging.info(f"Model Trainer Artifact: {model_trainer_artifact}")
+            return model_trainer_artifact
+
+                
         except Exception as e:
-            raise HousingException(e, sys) from e
+            raise FraudDetectionException(e, sys) from e
 
     def __del__(self):
         logging.info(f"{'>>' * 30}Model trainer log completed.{'<<' * 30} ")

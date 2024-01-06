@@ -25,19 +25,9 @@ data_transformation_config:
 
   
 model_trainer_config:
-  trained_model_dir: trained_model
-  model_file_name: model.pkl
+  trained_models_dir: trained_models
   base_accuracy: 0.6
   model_config_dir: config
   model_config_file_name: model.yaml
 
 
-
-
-
-model_evaluation_config:
-  model_evaluation_file_name: model_evaluation.yaml
-  
-
-model_pusher_config:
-  model_export_dir: saved_models

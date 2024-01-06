@@ -1,7 +1,9 @@
 from src.config.configuration import Configuartion
 from src.entity.config_entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig
-from src.entity.artifact_entity import DataValidationArtifact, DataIngestionArtifact, DataTransformationArtifact
+from src.entity.artifact_entity import DataValidationArtifact, DataIngestionArtifact, DataTransformationArtifact,\
+ModelTrainerArtifact
 
+from src.component.model_trainer import ModelTrainer
 from src.logger import logging
 from src.exception import FraudDetectionException
 from src.component.data_ingestion import DataIngestion
@@ -48,8 +50,14 @@ class Pipeline:
             raise FraudDetectionException(e, sys)
 
 
-    def start_model_trainer(self) :
-        pass
+    def start_model_trainer(self, data_transformation_artifact: DataTransformationArtifact) -> ModelTrainerArtifact:
+        try:
+            model_trainer = ModelTrainer(model_trainer_config=self.config.get_model_trainer_config(),
+                                         data_transformation_artifact=data_transformation_artifact
+                                         )
+            return model_trainer.initiate_model_trainer()
+        except Exception as e:
+            raise FraudDetectionException(e, sys) from e
 
     def start_model_evaluation(self):
         pass
@@ -63,8 +71,10 @@ class Pipeline:
 
             data_ingestion_artifact = self.start_data_ingestion()
             data_validation_artifact = self.start_data_validation(data_ingestion_artifact=data_ingestion_artifact)
-            dataTransformationArtifact=self.start_data_transformation(data_ingestion_artifact=data_ingestion_artifact,
+            data_transformation_artifact=self.start_data_transformation(data_ingestion_artifact=data_ingestion_artifact,
                                                                       data_validation_artifact=data_validation_artifact)
+            
+            model_trainer_artifact = self.start_model_trainer(data_transformation_artifact=data_transformation_artifact)
 
             
 

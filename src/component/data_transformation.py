@@ -356,6 +356,8 @@ class DataTransformation:
             clustered_data=self.create_clusters(input_feature_data_df, clusters)
             clustered_data['Labels']=target_feature_data_df
 
+            #convert the clustered data into float
+            clustered_data=clustered_data.astype(float) 
             transformed_data_dir = self.data_transformation_config.transformed_data_dir
             data_file_name = 'Transformed_dataframe.csv'
 
@@ -366,7 +368,15 @@ class DataTransformation:
                  
             data_transformation_artifact = DataTransformationArtifact(is_transformed=True,
             message="Data transformation successfull.",
-            transformed_data_file_path=transformed_data_file_path, 
+
+            transformed_data_file_path=transformed_data_dir, 
+
+
+
+
+
+
+            
             cluster_object_file_path=self.data_transformation_config.cluster_object_file_path,
             number_of_clusters=clusters
             )

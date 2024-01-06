@@ -5,19 +5,23 @@ grid_search:
     cv: 5
     verbose: 3
 
+
+
 model_selection:
-  
   module_0:
     class: XGBClassifier
     module: xgboost
     params:
       n_estimators: [100, 130]
       criterion: ['gini', 'entropy']
-      max_depth: range(8, 10, 1)
+      max_depth: [8, 9]  # Since range() isn't directly usable, adjusted to a list
       n_jobs: -1
+    search_param_grid:
+      n_estimators: [100, 130]
+      criterion: ['gini', 'entropy']
+      max_depth: [8, 9]  # Adjusted the range as a list [8, 9]
+      n_jobs: [-1]
     
-
-
   module_1:
     class: SVC
     module: sklearn.svm
@@ -25,5 +29,99 @@ model_selection:
       kernel: ['rbf', 'sigmoid']
       C: [0.1, 0.5, 1.0]
       random_state: [0, 100, 200, 300]
+    search_param_grid:
+      kernel: ['rbf', 'sigmoid']
+      C: [0.1, 0.5, 1.0]
+      random_state: [0, 100, 200, 300]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+model_selection2:
+  
+  module_0:
+    
+    class: XGBClassifier
+    module: xgboost
+    params:
+      n_estimators: [100]
+      criterion: 'gini'
+      max_depth: 8
+      n_jobs: -1
+
+    search_param_grid:
+      n_estimators: [130]
+      criterion: 'entropy'
+      max_depth: 9
+      n_jobs: -1
+
+
+  module_1:
+    class: SVC
+    module: sklearn.svm
+    params:
+      kernel: 'rbf'
+      C: [0.1, 0.5, 1.0]
+      random_state: [0, 100, 200, 300]
+
+    search_param_grid:
+      kernel: 'sigmoid'
+      C: [0.1, 0.5, 1.0]
+      random_state: [0, 100, 200, 300]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exmple:
+    module_0:
+      class: XGBClassifier
+      module: xgboost
+      params:
+        n_estimators: [100, 130]
+        criterion: ['gini', 'entropy']
+        max_depth: range(8, 10, 1)
+        n_jobs: -1
+      
+    module_1:
+      class: SVC
+      module: sklearn.svm
+      params:
+        kernel: ['rbf', 'sigmoid']
+        C: [0.1, 0.5, 1.0]
+        random_state: [0, 100, 200, 300]
      
     
