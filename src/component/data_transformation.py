@@ -146,49 +146,6 @@ class DataTransformation:
             raise FraudDetectionException(e,sys) from e
         
 
-    '''
-
-    def get_data_transformer_object(self)-> pd.DataFrame:
-        try:
-            schema_file_path = self.data_validation_artifact.schema_file_path
-
-            dataset_schema = read_json_file(file_path=schema_file_path)
-
-            numerical_columns = [x for x in dataset_schema[NUMERICAL_COLUMN_KEY] if x not in dataset_schema[COLUMNS_TO_REMOVE] ]
-            categorical_columns = [x for x in dataset_schema[CATEGORICAL_COLUMN_KEY] if x not in dataset_schema[COLUMNS_TO_REMOVE] ]
-            ohe_columns=dataset_schema[COLUMNS_FOR_OHE]
-
-            num_pipeline = Pipeline(steps=[
-                ('imputer', SimpleImputer(strategy="median"))
-               # , ('scaler', StandardScaler()) 
-                ])
-
-            cat_pipeline = Pipeline(steps=[
-                 ('encoder_generator', CustomEncoder()),
-                 ('impute', SimpleImputer(strategy="most_frequent"))
-                 #, ('scaler', StandardScaler(with_mean=False)) 
-                 ])
-
-            ohe_pipeline = Pipeline(steps=[
-                ('one_hot_encoder', OneHotEncoder()),
-                ('impute', SimpleImputer(strategy="most_frequent"))
-                #, ('scaler', StandardScaler(with_mean=False)) 
-                ])
-
-            logging.info(f"Categorical columns: {categorical_columns}")
-            logging.info(f"Numerical columns: {numerical_columns}")
-
-            preprocessing = ColumnTransformer([
-                ('num_pipeline', num_pipeline, numerical_columns),
-                ('cat_pipeline_for_custom', cat_pipeline, categorical_columns),
-                ('cat_pipeline_ohe', ohe_pipeline, ohe_columns) ])
-            
-            return preprocessing
-
-        except Exception as e:
-            raise FraudDetectionException(e,sys) from e''' 
-
-
     def impute_missing_values(self, data)-> pd.DataFrame:
         try:
             schema_file_path = self.data_validation_artifact.schema_file_path

@@ -72,7 +72,7 @@ class ModelTrainer:
                  # Prepare the feature and Label columns
                 cluster_features=cluster_data.drop(['Labels','Cluster'],axis=1)
                 cluster_label= cluster_data['Labels']
-                 # splitting the data into training and test set for each cluster one by one
+                # splitting the data into training and test set for each cluster one by one
                 x_train, x_test, y_train, y_test = train_test_split(cluster_features, cluster_label, test_size=1 / 3, random_state=355)
                 # Proceeding with more data pre-processing steps
                 x_train = scale_numerical_columns(x_train)
@@ -105,8 +105,9 @@ class ModelTrainer:
 
 
                 trained_model_file_path=self.model_trainer_config.trained_model_file_path
-                name=metric_info.model_name+str(i)
+                name=metric_info.model_name+str(int(i))
                 logging.info(f"Saving model at path: {trained_model_file_path}")
+
                 save_model(trained_model_file_path, model_object, name)
 
                 #Appending Train, test and Model accuracy for each clusters

@@ -1,6 +1,6 @@
 
 from src.entity.config_entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig,  \
-ModelTrainerConfig,ModelEvaluationConfig,ModelPusherConfig,TrainingPipelineConfig
+ModelTrainerConfig,ModelPusherConfig,TrainingPipelineConfig, PredictionConfig
 from src.util.util import read_yaml_file, read_json_file
 from src.logger import logging
 import sys,os
@@ -15,7 +15,7 @@ class Configuartion:
         current_time_stamp:str = CURRENT_TIME_STAMP
         ) -> None:
         try:
-            self.config_info  = read_yaml_file(file_path=config_file_path)           
+            self.config_info  = read_yaml_file(file_path=config_file_path)
             self.training_pipeline_config = self.get_training_pipeline_config()
             self.time_stamp = current_time_stamp
         except Exception as e:
@@ -186,6 +186,8 @@ class Configuartion:
         except Exception as e:
             raise FraudDetectionException(e,sys) from e
 
+            '''
+
 
     def get_model_pusher_config(self) -> ModelPusherConfig:
         try:
@@ -200,6 +202,29 @@ class Configuartion:
 
         except Exception as e:
             raise FraudDetectionException(e,sys) from e
-'''
+        
+
+    def get_data_prediction_config(self) ->PredictionConfig:
+        try:
+            time_stamp = f"{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            data_prediction_config_info = self.config_info[DATA_PREDICTION_CONFIG_KEY]
+            root_path = os.path.join(ROOT_DIR, data_prediction_config_info[PREDICT_DATA_INGESTED_DIR_NAME_KEY],
+                                           time_stamp)
+            data_download_url=data_prediction_config_info[DATA_INGESTION_DOWNLOAD_URL_KEY]
+            tgz_download_dir=os.path.join(root_path, data_prediction_config_info[PREDICT_DATA_TGZ_DOWNLOAD_DIR_KEY])
+            raw_dir=os.path.join(root_path, data_prediction_config_info[PREDICT_RAW_DATA_DIR_KEY])
+            predic_path=os.path.join(root_path, data_prediction_config_info[PREDICTED_DIR_KEY])
+
+            data_predict_config=PredictionConfig(dataset_download_url=data_download_url,
+                                                 predicted_path=predic_path,
+                                                 tgz_download_dir=tgz_download_dir, raw_data_dir=raw_dir)
+            
+            logging.info(f"Data predict config {data_predict_config}")
+            return data_predict_config
+
+        except Exception as e:
+            raise FraudDetectionException(e,sys) from e
+
+
 
             

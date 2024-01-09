@@ -86,16 +86,13 @@ def save_model(file_path:str, model, filename:str):
         #dir_path = os.path.dirname(file_path)
         #os.makedirs(dir_path, exist_ok=True)
 
-
-
         path = os.path.join(file_path, filename) #create seperate directory for each cluster
         if os.path.isdir(path): #remove previously existing models for each clusters
             shutil.rmtree(file_path)
             os.makedirs(path)
         else:
             os.makedirs(path) #
-        with open(path +'/' + filename+'.sav',
-                    'wb') as f:
+        with open(path +'/' + filename + '.sav', 'wb') as f:
             pickle.dump(model, f) # save the model to file'''
 
     except Exception as e:
@@ -177,4 +174,20 @@ def scale_numerical_columns(data):
     #data = pd.concat([scaled_df, data], axis=1)
 
     return scaled_df
-    
+
+
+
+
+def find_correct_model_file(cluster_number, path):
+
+    list_of_files = os.listdir(path)
+    for file in list_of_files:
+        try:
+            if (file.index(str(cluster_number))!=-1):
+                model_name=file
+        except:
+            continue
+    model_name=model_name.split('.')[0]
+    return model_name 
+
+

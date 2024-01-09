@@ -80,3 +80,14 @@ MODEL_PATH_KEY = "model_path"
 
 EXPERIMENT_DIR_NAME="experiment"
 EXPERIMENT_FILE_NAME="experiment.csv"
+
+
+# Prediction Data Ingestion related variable
+DATA_PREDICTION_CONFIG_KEY = "prediction_config"
+PREDICT_DATA_DOWNLOAD_URL_KEY = "dataset_download_url"
+PREDICT_DATA_INGESTED_DIR_NAME_KEY = "ingested_dir"
+PREDICT_DATA_TGZ_DOWNLOAD_DIR_KEY = "tgz_download_dir"
+PREDICT_RAW_DATA_DIR_KEY= "raw_data_dir"
+PREDICTED_DIR_KEY= "predicted_data"
+
+
