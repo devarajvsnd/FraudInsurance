@@ -105,7 +105,7 @@ class DataPrediction:
 
             json_path=self.data_validation_config.schema_file_path
             json_info= read_json_file(json_path)
-            columns=json_info['columns_to_remove']
+            columns=json_info[COLUMNS_TO_REMOVE]
          
             useful_data=data.drop(labels=columns, axis=1) 
             # drop the labels specified in the columns

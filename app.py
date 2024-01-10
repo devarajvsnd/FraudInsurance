@@ -102,6 +102,15 @@ def train():
 
 @app.route('/predict', methods=['GET', 'POST'])
 def predict():
+    logging.info(f"predict started")
+
+
+
+
+
+
+
+
     context = {
        # HOUSING_DATA_KEY: None,
         #MEDIAN_HOUSING_VALUE_KEY: None
@@ -111,27 +120,30 @@ def predict():
     }
 
     if request.method == 'POST':
+
+        logging.info(f"post started")
         months_as_customer=float(request.form['months_as_customer'])
-        policy_csl=str(request.form['policy_csl'])
+        logging.info(f"post started 2")
+        policy_csl=float(request.form['policy_csl'])
         policy_deductable=float(request.form['policy_deductable'])
         policy_annual_premium=float(request.form['policy_annual_premium'])
         umbrella_limit=float(request.form['umbrella_limit'])
-        insured_sex=str(request.form['insured_sex'])
-        insured_education_level=str(request.form['insured_education_level'])
+        insured_sex=float(request.form['insured_sex'])
+        insured_education_level=float(request.form['insured_education_level'])
         insured_occupation=str(request.form['insured_occupation'])
         insured_relationship=str(request.form['insured_relationship'])
         capitalgains=float(request.form['capitalgains'])
         capitalloss=float(request.form['capitalloss'])
         incident_type=str(request.form['incident_type'])
         collision_type=str(request.form['collision_type'])
-        incident_severity=str(request.form['incident_severity'])
+        incident_severity=float(request.form['incident_severity'])
         authorities_contacted=str(request.form['authorities_contacted'])
         incident_hour_of_the_day=float(request.form['incident_hour_of_the_day'])
         number_of_vehicles_involved=float(request.form['number_of_vehicles_involved'])
-        property_damage=str(request.form['property_damage'])
+        property_damage=float(request.form['property_damage'])
         bodily_injuries=float(request.form['bodily_injuries'])
         witnesses=float(request.form['witnesses'])
-        police_report_available=str(request.form['police_report_available'])
+        police_report_available=float(request.form['police_report_available'])
         injury_claim=float(request.form['injury_claim'])
         property_claim=float(request.form['property_claim'])
         vehicle_claim=float(request.form['vehicle_claim'])
@@ -164,14 +176,14 @@ def predict():
                                      )
 
 
-
-        
         insurance_df = insurance_data.get_insurance_input_data_frame()
+ 
         insurance_predictor = FraudPredictor(model_dir=MODEL_DIR)
-        fraud_value = insurance_predictor.predict(X=insurance_df)
+        fraud_value=insurance_predictor.predict(insurance_df)
+        
         context = {
             INSURANCE_DATA_KEY:insurance_data.get_insurance_data_as_dict(),
-            FRAUD_VALUE_KEY:fraud_value,
+            FRAUD_VALUE_KEY:fraud_value
         }
         return render_template('predict.html', context=context)
     return render_template("predict.html", context=context)
