@@ -95,29 +95,16 @@ def train():
         message = "Training is already in progress."
     context = {
         "experiment": pipeline.get_experiments_status().to_html(classes='table table-striped col-12'),
-        "message": message
-    }
+        "message": message }
+    
     return render_template('train.html', context=context)
-
 
 @app.route('/predict', methods=['GET', 'POST'])
 def predict():
-    logging.info(f"predict started")
-
-
-
-
-
-
-
 
     context = {
-       # HOUSING_DATA_KEY: None,
-        #MEDIAN_HOUSING_VALUE_KEY: None
-
         INSURANCE_DATA_KEY: None,
-        FRAUD_VALUE_KEY: None
-    }
+        FRAUD_VALUE_KEY: None }
 
     if request.method == 'POST':
 
@@ -148,7 +135,6 @@ def predict():
         property_claim=float(request.form['property_claim'])
         vehicle_claim=float(request.form['vehicle_claim'])
 
-
         insurance_data=InsuranceData(months_as_customer=months_as_customer,
                                      policy_csl=policy_csl,
                                      policy_deductable=policy_deductable,
@@ -175,18 +161,45 @@ def predict():
                                      vehicle_claim=vehicle_claim
                                      )
 
-
         insurance_df = insurance_data.get_insurance_input_data_frame()
- 
         insurance_predictor = FraudPredictor(model_dir=MODEL_DIR)
         fraud_value=insurance_predictor.predict(insurance_df)
         
         context = {
             INSURANCE_DATA_KEY:insurance_data.get_insurance_data_as_dict(),
-            FRAUD_VALUE_KEY:fraud_value
-        }
+            FRAUD_VALUE_KEY:fraud_value}
         return render_template('predict.html', context=context)
     return render_template("predict.html", context=context)
+
+
+
+@app.route('/bulkpredict', methods=['GET', 'POST'])
+def bulkpredict():
+    message = ""
+    pipeline = Pipeline(config=Configuartion(current_time_stamp=get_current_time_stamp()))
+    pipeline.initiate_bulk_prediction()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

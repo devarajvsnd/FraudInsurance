@@ -99,15 +99,18 @@ table-layout: fixed;
                 <li class="list-group-item py-1 {% if 'saved_models' in request.path %} active {% endif %}">
                     <a style=" text-decoration: none;color:black" href="/saved_models">View Trained Model</a>
                 </li>
-                <li class="list-group-item py-1 {% if 'predict' in request.path %} active {% endif %}">
-                    <a style=" text-decoration: none;color:black" href="/predict">Check Insurnce Fraud</a>
-                </li>
                 <li class="list-group-item py-1 {% if 'train' in request.path %} active {% endif %}">
                     <a style=" text-decoration: none;color:black" href="/train">Train Insurance Fraud Detector</a>
                 </li>
+
+                <li class="list-group-item py-1 {% if 'predict' in request.path %} active {% endif %}">
+                    <a style=" text-decoration: none;color:black" href="/predict">Check Insurnce Fraud from input</a>
+                </li>
+
+                <li class="list-group-item py-1 {% if 'predict' in request.path %} active {% endif %}">
+                    <a style=" text-decoration: none;color:black" href="/bulkpredict">Check Insurnce Fraud from Bulk data</a>
+                </li>
                 
-
-
                 <li class="list-group-item py-1 {% if 'update_model_config' in request.path %} active {% endif %}">
                     <a style=" text-decoration: none;color:black" href="/update_model_config">Update Model Config</a>
                 </li>

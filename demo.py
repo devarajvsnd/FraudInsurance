@@ -11,7 +11,8 @@ def main():
         pipeline = Pipeline(config=Configuartion(current_time_stamp=get_current_time_stamp()))
         #pipeline.run_pipeline()
 
-        pipeline.start()
+       # pipeline.start()
+        pipeline.initiate_bulk_prediction()
 
 
 

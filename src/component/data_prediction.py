@@ -1,28 +1,32 @@
-from src.entity.config_entity import PredictionConfig, DataTransformationConfig, \
-    DataValidationConfig, ModelTrainerConfig, ModelPusherConfig
-import sys,os
-from src.exception import FraudDetectionException
-from src.logger import logging
-from src.entity.artifact_entity import DataPredictionArtifact
+import sys, os
 import tarfile
 import numpy as np
-from six.moves import urllib
 import pandas as pd
-from src.util.util import  read_json_file, save_data, save_object, load_data, save_model, \
-    scale_numerical_columns, load_object, find_correct_model_file
+from six.moves import urllib
+from src.logger import logging
+from src.constant import *
+from src.exception import FraudDetectionException
+from src.entity.artifact_entity import DataPredictionArtifact, ModelPusherArtifact
+from src.util.util import  read_json_file, save_data, scale_numerical_columns, \
+    load_object, find_correct_model_file
 from sklearn.impute import SimpleImputer
 from src.component.data_transformation import CustomEncoder
+from src.entity.config_entity import PredictionConfig, DataTransformationConfig, \
+    DataValidationConfig, ModelPusherConfig
+
+ROOT_DIR = os.getcwd()
+PIPELINE_FOLDER_NAME = "src"
+SAVED_MODELS_DIR_NAME = "saved_models"
+MODEL_DIR = os.path.join(ROOT_DIR, SAVED_MODELS_DIR_NAME)
 
 
-
-from src.constant import *
 
 class DataPrediction:
 
     def __init__(self,data_prediction_config:PredictionConfig, data_validation_config:DataValidationConfig,
-                 data_transformation_config: DataTransformationConfig, model_pusher_config: ModelPusherConfig ):
+                 data_transformation_config: DataTransformationConfig, model_pusher_config: ModelPusherConfig):
         try:
-            logging.info(f"{'>>'*20}Data prediction log started.{'<<'*20} ")
+            logging.info(f"{'>>'*20}Bulk Data prediction log started.{'<<'*20} ")
             self.data_prediction_config = data_prediction_config
             self.data_validation_config=data_validation_config
             self.data_transformation_config=data_transformation_config
@@ -102,14 +106,15 @@ class DataPrediction:
             data.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
             null_columns = data.columns[data.isnull().all()]
             data.drop(null_columns, axis=1, inplace=True)
+            data['fraud_reported'] = None 
 
             json_path=self.data_validation_config.schema_file_path
             json_info= read_json_file(json_path)
             columns=json_info[COLUMNS_TO_REMOVE]
          
-            useful_data=data.drop(labels=columns, axis=1) 
+            new_df=data.drop(labels=columns, axis=1) 
             # drop the labels specified in the columns
-            useful_data.replace('?',np.NaN,inplace=True)
+            new_df.replace('?',np.NaN,inplace=True)
             numerical_columns = [x for x in json_info[NUMERICAL_COLUMN_KEY] 
                                  if x not in json_info[COLUMNS_TO_REMOVE] ]
             categorical_columns = [x for x in json_info[CATEGORICAL_COLUMN_KEY] 
@@ -117,46 +122,54 @@ class DataPrediction:
             
             logging.info('Imputing numerical values')
             num_imputer = SimpleImputer(strategy='mean')
-            data[numerical_columns] = num_imputer.fit_transform(data[numerical_columns])    
+            new_df[numerical_columns] = num_imputer.fit_transform(new_df[numerical_columns])    
             logging.info('Imputing categorical values')
             cat_imputer = SimpleImputer(strategy='most_frequent')
-            data[categorical_columns] = cat_imputer.fit_transform(data[categorical_columns])
+            new_df[categorical_columns] = cat_imputer.fit_transform(new_df[categorical_columns])
             custom_encoding_obj=CustomEncoder()
             logging.info('Cusom encoding the data')
-            data=custom_encoding_obj.fit_transform(data)
+            new_df=custom_encoding_obj.fit_transform(new_df)
             ohe_columns=json_info[COLUMNS_FOR_OHE]
             logging.info('One Hot Eencoding for remaining categorical data')
-            encoded_data = pd.get_dummies(data, columns=ohe_columns, drop_first=True)
+            encoded_data = pd.get_dummies(new_df, columns=ohe_columns, drop_first=True)
 
-            data=encoded_data.astype(float) 
-            array = scale_numerical_columns(encoded_data)
-            return array
+            return encoded_data.astype(float) 
         except Exception as e:
             raise FraudDetectionException(e,sys) from e 
 
 
     def data_predict(self, data):
         try:
-            models_file_location=self.model_pusher_config.export_dir_path
-            cluster_object_file_path =os.path.join(models_file_location, 'KMeans')
+            models_root_dir=self.model_pusher_config.export_dir_path
+            parent_dir=os.path.dirname(models_root_dir)
+
+
+            logging.info(f"model dir: {parent_dir}")
+
+            folder_name = list(map(int, os.listdir(parent_dir)))
+            latest_model_dir = os.path.join(parent_dir, f"{max(folder_name)}")
+            
+            #self.model_pusher_config.export_dir_path
+            cluster_object_file_path =os.path.join(latest_model_dir, 'KMeans')
 
             file_name = os.listdir(cluster_object_file_path)[0]
             cluster_model = os.path.join(cluster_object_file_path,file_name)
             kmeans=load_object(cluster_model)
-            clusters=kmeans.predict(data)
-            data['clusters']=clusters
-            clusters=data['clusters'].unique()
+            df=data.drop('fraud_reported', axis=1)
+            clusters=kmeans.predict(df)
+            df['clusters']=clusters
+            no_of_clusters=df['clusters'].unique()
             predictions=[]
-            for i in clusters:
-                cluster_data= data[data['clusters']==i]
+            for i in no_of_clusters:
+                cluster_data= df[df['clusters']==i]
                 cluster_data = cluster_data.drop(['clusters'],axis=1)
-                model_name = find_correct_model_file(path=models_file_location, cluster_number=int(i))
-                model_dir = os.path.join(models_file_location,model_name)
+                model_name = find_correct_model_file(path=latest_model_dir, cluster_number=int(i))
+                model_dir = os.path.join(latest_model_dir,model_name)
                 file_name = os.listdir(model_dir)[0]
                 
-                model = load_object(os.path.jpin(model_dir, file_name))
-
-                result=(model.predict(cluster_data))
+                model = load_object(os.path.join(model_dir, file_name))
+                array = scale_numerical_columns(cluster_data)
+                result=(model.predict(array))
                 for res in result:
                     if res==0:
                         predictions.append('N')
@@ -183,24 +196,25 @@ class DataPrediction:
             logging.info(f"Reading csv file: [{file_path}]")
             data_df = pd.read_csv(file_path)
 
-            transformed_data_array=self.data_transformation(data_df)
+            transformed_data=self.data_transformation(data_df)
 
-            predict_df=self.data_predict(transformed_data_array)
+            predict_df=self.data_predict(transformed_data)
 
-            final_df=pd.concat([data_df, predict_df])
+            final_df=pd.concat([data_df, predict_df], axis=1)
             predict_path=self.data_prediction_config.predicted_path
-            save_data(predict_path, final_df)
 
+            if os.path.exists(predict_path):
+                os.remove(predict_path)
+            os.makedirs(predict_path,exist_ok=True)
+
+            final_df.to_csv(os.path.join(predict_path, "Final_Result.csv" ))
 
             data_prediction_artifact = DataPredictionArtifact(is_predicted= True, export_data_file_path=predict_path)
             logging.info(f"Data Prediction artifact:[{data_prediction_artifact}]")
 
             return data_prediction_artifact         
-        
         except Exception as e:
             raise FraudDetectionException(e,sys) from e
     
-
-
     def __del__(self):
         logging.info(f"{'>>'*20}Data prediction log completed.{'<<'*20} \n\n")

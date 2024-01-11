@@ -9,7 +9,7 @@ from typing import List
 
 from multiprocessing import Process
 from src.entity.artifact_entity import ModelPusherArtifact, DataIngestionArtifact #ModelEvaluationArtifact
-from src.entity.artifact_entity import DataValidationArtifact, DataTransformationArtifact, ModelTrainerArtifact
+from src.entity.artifact_entity import DataValidationArtifact, DataTransformationArtifact, ModelTrainerArtifact, DataPredictionArtifact
 from src.entity.config_entity import DataIngestionConfig #ModelEvaluationConfig
 from src.component.data_ingestion import DataIngestion
 from src.component.data_validation import DataValidation
@@ -17,6 +17,7 @@ from src.component.data_transformation import DataTransformation
 from src.component.model_trainer import ModelTrainer
 #from src.component.model_evaluation import ModelEvaluation
 from src.component.model_pusher import ModelPusher
+from src.component.data_prediction import DataPrediction
 import os, sys
 from collections import namedtuple
 from datetime import datetime
@@ -219,6 +220,20 @@ class Pipeline(Thread):
                 return pd.DataFrame()
         except Exception as e:
             raise FraudDetectionException(e, sys) from e
+        
+
+    def initiate_bulk_prediction(self)->DataPredictionArtifact:
+        try:
+            data_pred=DataPrediction(data_prediction_config=self.config.get_data_prediction_config(),
+                                     data_transformation_config=self.config.get_data_transformation_config(),
+                                     data_validation_config=self.config.get_data_validation_config(),
+                                     model_pusher_config=self.config.get_model_pusher_config())
+            
+           
+            return data_pred.initiate_data_prediction()
+        except Exception as e:
+            raise FraudDetectionException(e, sys) from e
+
         
 
  

@@ -50,10 +50,7 @@ def read_json_file(file_path:str)->dict:
 
 
 def save_data(file_path: str, dataframe: pd.DataFrame):
-    """
-    Save numpy data to file
-    file_path: str location of file to save
-        """
+
     try:
         dir_path = os.path.dirname(file_path)
         os.makedirs(dir_path, exist_ok=True)

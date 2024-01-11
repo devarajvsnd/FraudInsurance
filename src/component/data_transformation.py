@@ -265,12 +265,7 @@ class DataTransformation:
             kmeans = KMeans(n_clusters=number_of_clusters, init='k-means++', random_state=42)
             #self.data = self.data[~self.data.isin([np.nan, np.inf, -np.inf]).any(1)]
             y_kmeans=kmeans.fit_predict(data) #  divide data into clusters
-
-
             kmeans.columns_used = data.columns
-
-            
-
             path=self.data_transformation_config.cluster_object_file_path
             
             save_model(path, kmeans, 'KMeans') 

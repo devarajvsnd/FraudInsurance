@@ -1,16 +1,9 @@
 import os
 import sys
-from src.exception import FraudDetectionException
-from src.util.util import load_object, read_json_file, scale_numerical_columns
 import pandas as pd
-
-
-from src.constant import *
-
 from src.logger import logging
+from src.exception import FraudDetectionException
 from src.util.util import  read_json_file, scale_numerical_columns, load_object, find_correct_model_file
-
-
 
 class InsuranceData:
 
@@ -38,8 +31,7 @@ class InsuranceData:
                  police_report_available:str,
                  injury_claim:float,
                  property_claim:float,
-                 vehicle_claim:float,
-                 fraud_reported: str = None
+                 vehicle_claim:float
                  ):
         try:
             self.months_as_customer = months_as_customer
@@ -112,12 +104,6 @@ class InsuranceData:
             raise FraudDetectionException(e, sys)
 
 
-
-
-
-
-
-
 class FraudPredictor:
 
     def __init__(self, model_dir: str):
@@ -130,9 +116,6 @@ class FraudPredictor:
 
     def predict(self, data):
         try:
-
-            predictions=[]
-
             ohe_columns= ["insured_occupation", "insured_relationship", "incident_type", "collision_type", "authorities_contacted"]
             encoded_data = pd.get_dummies(data, columns=ohe_columns)
             dump_col=['authorities_contacted_Ambulance','authorities_contacted_None', 
@@ -153,15 +136,9 @@ class FraudPredictor:
                 encoded_data[col] = 0
 
             dataframe = encoded_data.drop(columns=[col for col in dump_col if col in encoded_data.columns])
-
             df=dataframe[columns_used_for_clustering]
-
-
             df.astype(float) 
             cluster=kmeans.predict(df)
-
-            logging.info(f"got cluster")
-
             model_name = find_correct_model_file(path=latest_model_dir, cluster_number=cluster[0])
             model_dir = os.path.join(latest_model_dir, model_name)
             file_name = os.listdir(model_dir)[0]
@@ -169,11 +146,10 @@ class FraudPredictor:
             model = load_object(os.path.join(model_dir, file_name))
             result=(model.predict(df))
             if result==0:
-                predictions.append('N')
+                prediction = "NO"
             else:
-                predictions.append('Y')
-
-            return predictions
+                prediction = "YES"
+            return prediction
             
         except Exception as e:
             raise FraudDetectionException(e, sys) from e
