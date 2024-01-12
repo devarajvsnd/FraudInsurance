@@ -67,6 +67,8 @@ def render_artifact_dir(req_path):
     return render_template('files.html', result=result)
 
 
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     try:
@@ -181,28 +183,37 @@ def bulkpredict():
 
 
 
+@app.route('/bulk_result', defaults={'req_path': 'data_prediction'})
+@app.route('/<path:req_path>')
+def render_prediction_dir(req_path):
+    os.makedirs("data_prediction", exist_ok=True)
+    # Joining the base and the requested path
+    print(f"req_path: {req_path}")
+    abs_path = os.path.join(req_path)
+    print(abs_path)
+    # Return 404 if path doesn't exist
+    if not os.path.exists(abs_path):
+        return abort(404)
 
+    # Check if path is a file and serve
+    if os.path.isfile(abs_path):
+        if ".html" in abs_path:
+            with open(abs_path, "r", encoding="utf-8") as file:
+                content = ''
+                for line in file.readlines():
+                    content = f"{content}{line}"
+                return content
+        return send_file(abs_path)
 
+    # Show directory contents
+    files = {os.path.join(abs_path, file_name): file_name for file_name in os.listdir(abs_path)}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    result = {
+        "files": files,
+        "parent_folder": os.path.dirname(abs_path),
+        "parent_label": abs_path
+    }
+    return render_template('result_files.html', result=result)
 
 
 @app.route('/saved_models', defaults={'req_path': 'saved_models'})

@@ -57,7 +57,7 @@ table-layout: fixed;
                 aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <a class="navbar-brand" href="/">Check Insurance Fraud</a>
+            <a class="navbar-brand" href="/"> Insurance Fraud Detector</a>
             <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
@@ -71,9 +71,6 @@ table-layout: fixed;
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if 'saved_models' in request.path %} active {% endif %}" href="/saved_models">View Trained Model</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'predict' in request.path %} active {% endif %}" href="/predict">Estimate Housing Price</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if 'predict' in request.path %} active {% endif %}" href="/view_experiment_hist">Experiment History</a>
@@ -90,25 +87,13 @@ table-layout: fixed;
        
         <div class="col-md-2 col-sm-12 col-lg-2">
             <ul class=" list-group ">
-                <li class="list-group-item py-1  {% if 'log' in request.path %} active {% endif %}">
-                    <a  style=" text-decoration: none;color:black" href="/logs">View Logs</a>
-                </li>
-                <li class="list-group-item py-1 {% if 'artifact' in request.path %} active {% endif %}">
-                    <a style=" text-decoration: none;color:rgb(0, 0, 0)" href="/artifact">View Artifacts</a>
-                </li>
-                <li class="list-group-item py-1 {% if 'saved_models' in request.path %} active {% endif %}">
-                    <a style=" text-decoration: none;color:black" href="/saved_models">View Trained Model</a>
-                </li>
-                <li class="list-group-item py-1 {% if 'train' in request.path %} active {% endif %}">
-                    <a style=" text-decoration: none;color:black" href="/train">Train Insurance Fraud Detector</a>
-                </li>
 
                 <li class="list-group-item py-1 {% if 'predict' in request.path %} active {% endif %}">
                     <a style=" text-decoration: none;color:black" href="/predict">Check Insurnce Fraud from input</a>
                 </li>
 
                 <li class="list-group-item py-1 {% if 'predict' in request.path %} active {% endif %}">
-                    <a style=" text-decoration: none;color:black" href="/bulkpredict">Check Insurnce Fraud from Bulk data</a>
+                    <a style=" text-decoration: none;color:black" href="/bulkpredict">Predict Insurnce Fraud from Bulk data</a>
                 </li>
                 
                 <li class="list-group-item py-1 {% if 'update_model_config' in request.path %} active {% endif %}">
