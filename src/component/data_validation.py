@@ -183,7 +183,66 @@ class DataValidation:
 
             
 
-    def initiate_data_validation(self)->DataValidationArtifact :
+    def initiate_data_validation(self) -> DataValidationArtifact:
+        try:
+            self.is_file_exists()
+            self.validate_dataset_schema()
+
+            file_names_list = os.listdir(os.path.join(ROOT_DIR, 'src', 'artifact', DATA_INGESTION_ARTIFACT_DIR))
+            if len(file_names_list) < 2:
+                logging.info("Not enough files for comparison. Exiting data validation.")
+                data_validation_artifact = DataValidationArtifact(
+                schema_file_path=self.data_validation_config.schema_file_path,
+                report_file_path=self.data_validation_config.report_file_path,
+                report_page_file_path=self.data_validation_config.report_page_file_path,
+                is_validated=True,
+                message="Data Validation performed successfully.")
+                
+                return data_validation_artifact  # Return or handle accordingly, as per your requirements
+    
+            self.is_data_drift_found()
+        
+            data_validation_artifact = DataValidationArtifact(
+                schema_file_path=self.data_validation_config.schema_file_path,
+                report_file_path=self.data_validation_config.report_file_path,
+                report_page_file_path=self.data_validation_config.report_page_file_path,
+                is_validated=True,
+                message="Data Validation performed successfully."
+            )
+            logging.info(f"Data validation artifact: {data_validation_artifact}")
+            return data_validation_artifact
+        except Exception as e:
+            raise FraudDetectionException(e, sys) from e
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        '''    def initiate_data_validation(self)->DataValidationArtifact :
         try:
             self.is_file_exists()
             self.validate_dataset_schema()
@@ -199,7 +258,7 @@ class DataValidation:
             logging.info(f"Data validation artifact: {data_validation_artifact}")
             return data_validation_artifact
         except Exception as e:
-            raise FraudDetectionException(e,sys) from e
+            raise FraudDetectionException(e,sys) from e'''
 
 
     def __del__(self):
