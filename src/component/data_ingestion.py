@@ -88,8 +88,6 @@ class DataIngestion:
 
 
 '''
-
-
     def split_data_as_train_test(self) -> DataIngestionArtifact:
         try:
             raw_data_dir = self.data_ingestion_config.raw_data_dir

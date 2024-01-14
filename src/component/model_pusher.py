@@ -1,6 +1,6 @@
 from src.logger import logging
 from src.exception import FraudDetectionException
-from src.entity.artifact_entity import ModelPusherArtifact, DataTransformationArtifact, ModelTrainerArtifact #ModelEvaluationArtifact , 
+from src.entity.artifact_entity import ModelPusherArtifact, DataTransformationArtifact, ModelTrainerArtifact 
 from src.entity.config_entity import ModelPusherConfig
 import os, sys
 import shutil

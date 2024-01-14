@@ -1,20 +1,17 @@
-from src.entity.artifact_entity import DataIngestionArtifact
+import os,sys
+import json
+import pandas as pd
+from src.constant import *
+from src.util.util import read_json_file
 from src.logger import logging
+from evidently.model_profile import Profile
+from evidently.dashboard import Dashboard
+from evidently.dashboard.tabs import DataDriftTab
 from src.exception import FraudDetectionException
 from src.entity.config_entity import DataValidationConfig
 from src.entity.artifact_entity import DataValidationArtifact
-import os,sys
-import pandas  as pd
-from evidently.model_profile import Profile
 from evidently.model_profile.sections import DataDriftProfileSection
-from evidently.dashboard import Dashboard
-from evidently.dashboard.tabs import DataDriftTab
-import json
-from src.util.util import read_json_file
-import os
-
-
-from src.constant import *
+from src.entity.artifact_entity import DataIngestionArtifact
 
 
 class DataValidation:

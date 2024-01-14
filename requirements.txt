@@ -12,3 +12,4 @@ sklearn-pandas
 imblearn
 kneed
 xgboost
+-e .

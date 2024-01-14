@@ -30,8 +30,6 @@ Experiment = namedtuple("Experiment", ["experiment_id", "initialization_timestam
 
 
 
-
-
 class Pipeline(Thread):
     experiment: Experiment = Experiment(*([None] * 11))
     experiment_file_path = None
@@ -84,20 +82,6 @@ class Pipeline(Thread):
             return model_trainer.initiate_model_trainer()
         except Exception as e:
             raise FraudDetectionException(e, sys) from e
-
-    '''
-    def start_model_evaluation(self, data_ingestion_artifact: DataIngestionArtifact,
-                               data_validation_artifact: DataValidationArtifact,
-                               model_trainer_artifact: ModelTrainerArtifact) -> ModelEvaluationArtifact:
-        try:
-            model_eval = ModelEvaluation(
-                model_evaluation_config=self.config.get_model_evaluation_config(),
-                data_ingestion_artifact=data_ingestion_artifact,
-                data_validation_artifact=data_validation_artifact,
-                model_trainer_artifact=model_trainer_artifact)
-            return model_eval.initiate_model_evaluation()
-        except Exception as e:
-            raise FraudDetectionException(e, sys) from e'''
 
     def start_model_pusher(self, model_train_artifact: ModelTrainerArtifact, 
                            data_trans_artifact: DataTransformationArtifact) -> ModelPusherArtifact:

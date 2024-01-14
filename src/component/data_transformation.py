@@ -1,30 +1,15 @@
 import sys,os
 import numpy as np
-#from cgi import test
-from sklearn import preprocessing
-from src.exception import FraudDetectionException
+import pandas as pd
+from src.constant import *
 from src.logger import logging
+from sklearn.impute import SimpleImputer
+from src.exception import FraudDetectionException
 from src.entity.config_entity import DataTransformationConfig 
 from src.entity.artifact_entity import DataIngestionArtifact, DataValidationArtifact, DataTransformationArtifact
 from sklearn.base import BaseEstimator,TransformerMixin
-from sklearn.preprocessing import StandardScaler,OneHotEncoder
-from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
-import pandas as pd
-from src.constant import *
-from src.util.util import  read_json_file, save_data, save_object, load_data, save_model
-
-
-
-
-
-from sklearn.preprocessing import StandardScaler
-from imblearn.over_sampling import RandomOverSampler
+from src.util.util import  read_json_file, save_data, save_model
 from os import listdir
-
-
-
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from kneed import KneeLocator
@@ -97,22 +82,9 @@ class DataTransformation:
 
 
     def remove_unwanted_spaces(self, data)-> pd.DataFrame:
-        """
-        This method removes the unwanted spaces from a pandas dataframe.
-        Output: A pandas DataFrame after removing the spaces.
-        On Failure: Raise Exception"""
         try:
-            ''' logging.info("Loading data frame from the provided dataset")
-            raw_data_dir = self.data_ingestion_artifact.data_file_path
-            file_name = os.listdir(raw_data_dir)[0]
-            file_path = os.path.join(raw_data_dir,file_name)
-
-            logging.info(f"Reading csv file: [{file_path}]")
-            data=pd.read_csv(file_path)'''
-
             data.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
             logging.info("Removed unwanted spaces in the dataframe")
-
             return data
         
         except Exception as e:
@@ -120,12 +92,6 @@ class DataTransformation:
 
 
     def remove_columns(self, data)-> pd.DataFrame:
-        """
-        Method Name: remove_columns
-        Description: This method removes the given columns from a pandas dataframe.
-        Output: A pandas DataFrame after removing the specified columns.
-        On Failure: Raise Exception"""
-        
         try:
             # Dropping the columns with all the null values
             null_columns = data.columns[data.isnull().all()]
@@ -191,11 +157,6 @@ class DataTransformation:
 
 
     def separate_label_feature(self, data):
-        """
-        Method Name: separate_label_feature
-        Description: This method separates the features and a Label Coulmns.
-        Output: Returns two separate Dataframes, one containing features and the other containing Labels .
-        On Failure: Raise Exception"""
         
         try:
             logging.info('Entered the separate_label_feature method of the Preprocessor class')
@@ -325,15 +286,7 @@ class DataTransformation:
                  
             data_transformation_artifact = DataTransformationArtifact(is_transformed=True,
             message="Data transformation successfull.",
-
-            transformed_data_file_path=transformed_data_dir, 
-
-
-
-
-
-
-            
+            transformed_data_file_path=transformed_data_dir,             
             cluster_object_file_path=self.data_transformation_config.cluster_object_file_path,
             number_of_clusters=clusters
             )

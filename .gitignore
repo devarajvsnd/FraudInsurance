@@ -3,11 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 saved_models/*
-
-src/artifact
 # C extensions
 *.so
-housing/artifact
+src/artifact
 # Distribution / packaging
 .Python
 build/
